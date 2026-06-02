@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { registerSchema } from "../../schemas/auth.schema";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Mail, Lock, User, Phone, AlertCircle, Loader } from "lucide-react";
@@ -7,44 +10,31 @@ import { useAuth } from "../../hooks/useAuth";
 
 export function RegisterPage() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    nombre: "",
-    apellido: "",
-    correo: "",
-    password: "",
-    confirmPassword: "",
-    telefono: "",
-    direccion: "",
-  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      nombre: "",
+      apellido: "",
+      correo: "",
+      password: "",
+      confirmPassword: "",
+      telefono: "",
+      direccion: "",
+    },
+  });
 
-  const { register } = useAuth();
+  const { register: authRegister } = useAuth();
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-
-    // Validaciones básicas
-    if (!formData.nombre || !formData.apellido || !formData.correo || !formData.password || !formData.confirmPassword) {
-      setError("Por favor completa todos los campos obligatorios");
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
+  const handleRegister = async (data) => {
+    if (data.password !== data.confirmPassword) {
       setError("Las contraseñas no coinciden");
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
       return;
     }
 
@@ -52,26 +42,22 @@ export function RegisterPage() {
       setLoading(true);
       setError("");
 
-      // Estructura exacta del backend: nombre, apellido, correo, password, telefono?, direccion?
       const registerData = {
-        nombre: formData.nombre,
-        apellido: formData.apellido,
-        correo: formData.correo,
-        password: formData.password,
+        nombre: data.nombre,
+        apellido: data.apellido,
+        correo: data.correo,
+        password: data.password,
       };
 
-      // Agregar campos opcionales si están rellenos
-      if (formData.telefono) {
-        registerData.telefono = formData.telefono;
+      if (data.telefono) {
+        registerData.telefono = data.telefono;
       }
-      if (formData.direccion) {
-        registerData.direccion = formData.direccion;
+      if (data.direccion) {
+        registerData.direccion = data.direccion;
       }
 
-      // Usar el hook de auth para registrar y sincronizar estado global
-      const response = await register(registerData);
+      const response = await authRegister(registerData);
 
-      // Si el registro fue exitoso, redirigir a perfil
       if (response && response.token) {
         navigate("/perfil");
       }
@@ -85,6 +71,17 @@ export function RegisterPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRegisterErrors = (formErrors) => {
+    const message =
+      formErrors.nombre?.message ||
+      formErrors.apellido?.message ||
+      formErrors.correo?.message ||
+      formErrors.password?.message ||
+      formErrors.confirmPassword?.message ||
+      "Por favor completa todos los campos obligatorios";
+    setError(String(message));
   };
 
   return (
@@ -110,7 +107,7 @@ export function RegisterPage() {
           )}
 
           {/* Register Form */}
-          <form onSubmit={handleRegister} className="space-y-4">
+          <form onSubmit={handleSubmit(handleRegister, handleRegisterErrors)} className="space-y-4">
             {/* Nombre Input */}
             <div>
               <label htmlFor="nombre" className="block text-sm font-medium text-[#1E2B24] mb-2">
@@ -121,9 +118,7 @@ export function RegisterPage() {
                 <input
                   id="nombre"
                   type="text"
-                  name="nombre"
-                  value={formData.nombre}
-                  onChange={handleChange}
+                  {...register("nombre")}
                   placeholder="Juan"
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E5E4E] focus:border-transparent transition"
                   disabled={loading}
@@ -141,9 +136,7 @@ export function RegisterPage() {
                 <input
                   id="apellido"
                   type="text"
-                  name="apellido"
-                  value={formData.apellido}
-                  onChange={handleChange}
+                  {...register("apellido")}
                   placeholder="Pérez"
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E5E4E] focus:border-transparent transition"
                   disabled={loading}
@@ -161,9 +154,7 @@ export function RegisterPage() {
                 <input
                   id="correo"
                   type="email"
-                  name="correo"
-                  value={formData.correo}
-                  onChange={handleChange}
+                  {...register("correo")}
                   placeholder="tu@email.com"
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E5E4E] focus:border-transparent transition"
                   disabled={loading}
@@ -181,9 +172,7 @@ export function RegisterPage() {
                 <input
                   id="password"
                   type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
+                  {...register("password")}
                   placeholder="••••••••"
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E5E4E] focus:border-transparent transition"
                   disabled={loading}
@@ -201,9 +190,7 @@ export function RegisterPage() {
                 <input
                   id="confirmPassword"
                   type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
+                  {...register("confirmPassword")}
                   placeholder="••••••••"
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E5E4E] focus:border-transparent transition"
                   disabled={loading}
@@ -221,9 +208,7 @@ export function RegisterPage() {
                 <input
                   id="telefono"
                   type="tel"
-                  name="telefono"
-                  value={formData.telefono}
-                  onChange={handleChange}
+                  {...register("telefono")}
                   placeholder="+57 300 1234567"
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E5E4E] focus:border-transparent transition"
                   disabled={loading}
@@ -239,9 +224,7 @@ export function RegisterPage() {
               <input
                 id="direccion"
                 type="text"
-                name="direccion"
-                value={formData.direccion}
-                onChange={handleChange}
+                {...register("direccion")}
                 placeholder="Calle 123 #45-67"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E5E4E] focus:border-transparent transition"
                 disabled={loading}

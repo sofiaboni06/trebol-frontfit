@@ -1,5 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { loginSchema } from "../../schemas/auth.schema";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Mail, Lock, AlertCircle, Loader } from "lucide-react";
@@ -7,44 +10,49 @@ import { useAuth } from "../../hooks/useAuth";
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const [correo, setCorreo] = useState("");
-  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const { login } = useAuth();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    
-    // Validaciones básicas
-    if (!correo || !password) {
-      setError("Por favor completa todos los campos");
-      return;
-    }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { correo: "", password: "" },
+  });
 
+  const handleLogin = async (data) => {
     try {
       setLoading(true);
       setError("");
-      
-      // Usar el hook para autenticar y sincronizar estado global
-      const response = await login(correo, password);
 
-      // Si el login fue exitoso, redirigir a perfil
+      const response = await login(data.correo, data.password);
+
       if (response && response.token) {
         navigate("/perfil");
       }
     } catch (err) {
-      // Capturar errores del servidor
-      const errorMessage = err.response?.data?.mensaje || 
-                          err.response?.data?.message ||
-                          err.response?.data?.error ||
-                          "Error en la autenticación";
+      const errorMessage =
+        err.response?.data?.mensaje ||
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Error en la autenticación";
       setError(errorMessage);
       console.error("Error de login:", err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleLoginErrors = (formErrors) => {
+    const message =
+      formErrors.correo?.message ||
+      formErrors.password?.message ||
+      "Por favor completa todos los campos";
+    setError(String(message));
   };
 
   return (
@@ -70,7 +78,10 @@ export function LoginPage() {
           )}
 
           {/* Login Form */}
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form
+            onSubmit={handleSubmit(handleLogin, handleLoginErrors)}
+            className="space-y-5"
+          >
             {/* Email Input */}
             <div>
               <label htmlFor="correo" className="block text-sm font-medium text-[#1E2B24] mb-2">
@@ -81,8 +92,7 @@ export function LoginPage() {
                 <input
                   id="correo"
                   type="email"
-                  value={correo}
-                  onChange={(e) => setCorreo(e.target.value)}
+                  {...register("correo")}
                   placeholder="tu@email.com"
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E5E4E] focus:border-transparent transition"
                   disabled={loading}
@@ -100,8 +110,7 @@ export function LoginPage() {
                 <input
                   id="password"
                   type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  {...register("password")}
                   placeholder="••••••••"
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2E5E4E] focus:border-transparent transition"
                   disabled={loading}

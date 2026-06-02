@@ -59,7 +59,7 @@ export const router = createBrowserRouter([
       { path: "servicios", Component: ServicesPage },
       { path: "asistente-ia", Component: AIAssistantPage },
       { path: "escaner", Component: PlantScannerPage },
-      { path: "perfil", Component: ProfilePage },
+      
       { path: "perfil", Component: RequireAuth(ProfilePage) },
       { path: "admin", Component: RequireRole(AdminDashboard, "ADMIN") },
     ],

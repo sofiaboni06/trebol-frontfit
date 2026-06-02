@@ -1,4 +1,5 @@
-import api from '../api/api';
+import api from './api';
+import { getHttpErrorMessage } from '../utils/http-error';
 
 /**
  * Servicio de productos
@@ -25,7 +26,7 @@ const productService = {
       // Backend retorna directamente el array de productos
       return Array.isArray(response.data) ? response.data : response.data.data || [];
     } catch (error) {
-      console.error('Error al obtener productos:', error.response?.data || error.message);
+      console.error('Error al obtener productos:', getHttpErrorMessage(error), error);
       throw error;
     }
   },
@@ -40,7 +41,7 @@ const productService = {
       const response = await api.get(`/productos/${productId}`);
       return response.data;
     } catch (error) {
-      console.error(`Error al obtener producto ${productId}:`, error.response?.data || error.message);
+      console.error(`Error al obtener producto ${productId}:`, getHttpErrorMessage(error), error);
       throw error;
     }
   },
@@ -55,7 +56,7 @@ const productService = {
       const response = await api.post('/productos', productData);
       return response.data;
     } catch (error) {
-      console.error('Error al crear producto:', error.response?.data || error.message);
+      console.error('Error al crear producto:', getHttpErrorMessage(error), error);
       throw error;
     }
   },
@@ -71,7 +72,7 @@ const productService = {
       const response = await api.put(`/productos/${productId}`, productData);
       return response.data;
     } catch (error) {
-      console.error(`Error al actualizar producto ${productId}:`, error.response?.data || error.message);
+      console.error(`Error al actualizar producto ${productId}:`, getHttpErrorMessage(error), error);
       throw error;
     }
   },
@@ -86,7 +87,7 @@ const productService = {
       const response = await api.delete(`/productos/${productId}`);
       return response.data;
     } catch (error) {
-      console.error(`Error al eliminar producto ${productId}:`, error.response?.data || error.message);
+      console.error(`Error al eliminar producto ${productId}:`, getHttpErrorMessage(error), error);
       throw error;
     }
   },

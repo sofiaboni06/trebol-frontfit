@@ -1,4 +1,5 @@
-import api from '../api/api';
+import api from './api';
+import { getHttpErrorMessage } from '../utils/http-error';
 
 /**
  * Servicio de autenticación
@@ -36,7 +37,7 @@ const authService = {
 
       return response.data;
     } catch (error) {
-      console.error('Error en login:', error.response?.data || error.message);
+      console.error('Error en login:', getHttpErrorMessage(error), error);
       throw error;
     }
   },
@@ -67,7 +68,7 @@ const authService = {
 
       return response.data;
     } catch (error) {
-      console.error('Error en registro:', error.response?.data || error.message);
+      console.error('Error en registro:', getHttpErrorMessage(error), error);
       throw error;
     }
   },
@@ -145,7 +146,7 @@ const authService = {
 
       return response.data;
     } catch (error) {
-      console.error('Error al actualizar perfil:', error.response?.data || error.message);
+      console.error('Error al actualizar perfil:', getHttpErrorMessage(error), error);
       throw error;
     }
   },
