@@ -9,10 +9,11 @@ import { useAuth } from "../../hooks/useAuth";
 export function RootLayout() {
   const location = useLocation();
   const [cartCount] = useState(3);
-  const isAdminPage = location.pathname.includes("/admin");
+  const isAdminOrEmployeePage =
+    location.pathname.includes("/admin") || location.pathname.includes("/empleado");
   const { isAuthenticated, logout } = useAuth();
 
-  if (isAdminPage) {
+  if (isAdminOrEmployeePage) {
     return <Outlet />;
   }
 
