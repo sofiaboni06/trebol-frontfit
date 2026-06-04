@@ -129,10 +129,16 @@ export function useAuth() {
     }
   };
 
+  const normalizeRoleName = (roleName) =>
+    roleName?.toString().toUpperCase().replace(/^ROLE_/, "") || "";
+
   const hasRole = (roleName) => {
-    return !!user?.roles?.some(
-      (role) => role?.nombre?.toString() === roleName
-    );
+    const normalizedRoleName = normalizeRoleName(roleName);
+
+    return !!user?.roles?.some((role) => {
+      const storedRoleName = normalizeRoleName(role?.nombre);
+      return storedRoleName === normalizedRoleName;
+    });
   };
 
   const isAdmin = () => hasRole("ADMIN");

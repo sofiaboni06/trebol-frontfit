@@ -28,7 +28,7 @@ function RequireAuth(Component) {
   };
 }
 
-function RequireRole(Component, roleName) {
+function ProtectedRoleRoute(Component, roleName) {
   return function RoleProtected(props) {
     const { isAuthenticated, loading, hasRole } = useAuth();
     if (loading) return null;
@@ -61,7 +61,7 @@ export const router = createBrowserRouter([
       { path: "escaner", Component: PlantScannerPage },
       
       { path: "perfil", Component: RequireAuth(ProfilePage) },
-      { path: "admin", Component: RequireRole(AdminDashboard, "ADMIN") },
+      { path: "admin", Component: ProtectedRoleRoute(AdminDashboard, "ADMIN") },
     ],
   },
   {
