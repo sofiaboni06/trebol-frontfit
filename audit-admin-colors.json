@@ -1,0 +1,57 @@
+[
+  {
+    "File": "C:\\Users\\intel ci3\\trabajo trebol completo\\trebol-frontfit\\src\\feacture\\admin\\layouts\\admin-layout.tsx",
+    "Count": 13,
+    "Lines": "37, 43, 49, 52, 53, 60, 80, 120, 160, 200, 223, 224, 229"
+  },
+  {
+    "File": "C:\\Users\\intel ci3\\trabajo trebol completo\\trebol-frontfit\\src\\feacture\\admin\\layouts\\employee-layout.tsx",
+    "Count": 24,
+    "Lines": "38, 40, 46, 49, 50, 57, 67, 68, 81, 91, 92, 105, 106, 119, 120, 133, 134, 147, 153, 159, 165, 178, 179, 184"
+  },
+  {
+    "File": "C:\\Users\\intel ci3\\trabajo trebol completo\\trebol-frontfit\\src\\feacture\\admin\\layouts\\mobile-layout.tsx",
+    "Count": 7,
+    "Lines": "14, 18, 23, 34, 43, 47, 54"
+  },
+  {
+    "File": "C:\\Users\\intel ci3\\trabajo trebol completo\\trebol-frontfit\\src\\feacture\\admin\\layouts\\root-layout.tsx",
+    "Count": 21,
+    "Lines": "18, 20, 26, 37, 43, 49, 56, 69, 73, 83, 100, 106, 112, 119, 138, 144, 148, 154, 163, 172, 179"
+  },
+  {
+    "File": "C:\\Users\\intel ci3\\trabajo trebol completo\\trebol-frontfit\\src\\feacture\\admin\\pages\\admin\\admin-dashboard-new.tsx",
+    "Count": 15,
+    "Lines": "22, 108, 127, 150, 158, 167, 174, 184, 198, 224, 242, 251, 265, 289, 298"
+  },
+  {
+    "File": "C:\\Users\\intel ci3\\trabajo trebol completo\\trebol-frontfit\\src\\feacture\\admin\\pages\\admin\\ai-management.tsx",
+    "Count": 27,
+    "Lines": "169, 190, 202, 207, 235, 237, 268, 270, 310, 318, 320, 347, 349, 358, 362, 380, 382, 394, 398, 422, 428, 437, 441, 444, 448, 451, 453"
+  },
+  {
+    "File": "C:\\Users\\intel ci3\\trabajo trebol completo\\trebol-frontfit\\src\\feacture\\admin\\pages\\admin\\category-management.tsx",
+    "Count": 5,
+    "Lines": "15, 20, 22, 37, 45"
+  },
+  {
+    "File": "C:\\Users\\intel ci3\\trabajo trebol completo\\trebol-frontfit\\src\\feacture\\admin\\pages\\admin\\reports-analytics.tsx",
+    "Count": 17,
+    "Lines": "160, 172, 185, 195, 205, 208, 217, 272, 274, 298, 300, 354, 356, 388, 395, 400, 402"
+  },
+  {
+    "File": "C:\\Users\\intel ci3\\trabajo trebol completo\\trebol-frontfit\\src\\feacture\\admin\\pages\\admin\\service-management.tsx",
+    "Count": 5,
+    "Lines": "22, 27, 29, 40, 51"
+  },
+  {
+    "File": "C:\\Users\\intel ci3\\trabajo trebol completo\\trebol-frontfit\\src\\feacture\\admin\\pages\\admin\\settings-page.tsx",
+    "Count": 11,
+    "Lines": "15, 21, 23, 38, 40, 56, 58, 73, 75, 91, 93"
+  },
+  {
+    "File": "C:\\Users\\intel ci3\\trabajo trebol completo\\trebol-frontfit\\src\\feacture\\admin\\pages\\admin\\user-management.tsx",
+    "Count": 35,
+    "Lines": "163, 200, 205, 220, 226, 229, 243, 251, 260, 264, 279, 297, 300, 305, 309, 324, 327, 328, 329, 330, 331, 332, 333, 334, 343, 348, 353, 354, 360, 361, 364, 365, 383, 390, 399"
+  }
+]

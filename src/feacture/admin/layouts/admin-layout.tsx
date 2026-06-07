@@ -30,11 +30,13 @@ import {
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 
+
+
 export function AdminLayout() {
   const linkClasses = (isActive: boolean) =>
     isActive
-      ? "text-[#E8EFE5] bg-[rgba(46,94,78,0.18)] shadow-[0_16px_36px_rgba(25,50,38,0.18)] rounded-2xl"
-      : "text-[#A5B1A5] hover:text-[#EDF4E6] hover:bg-[rgba(123,174,127,0.08)] rounded-2xl transition-all duration-200 ease-out";
+      ? "admin-link-active bg-[rgba(46,94,78,0.18)] shadow-[0_16px_36px_rgba(25,50,38,0.18)] rounded-2xl"
+      : "admin-link hover:bg-[rgba(123,174,127,0.08)] rounded-2xl transition-all duration-200 ease-out";
 
   return (
     <SidebarProvider>
@@ -220,8 +222,8 @@ export function AdminLayout() {
 
         {/* Main Content */}
         <SidebarInset className="flex-1 overflow-auto">
-          <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-white/10 bg-[#08110d]/80 backdrop-blur-xl px-6">
-            <SidebarTrigger className="text-[#D8E3D6] hover:text-[#F3F8EE]" />
+          <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b border-white/10 backdrop-blur-xl px-6">
+            <SidebarTrigger className="admin-trigger" />
             <div className="flex-1" />
             <Link to="/">
               <Button

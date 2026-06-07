@@ -20,6 +20,7 @@ import { AdminLayout } from "../feacture/admin/layouts/admin-layout";
 import { EmployeeLayout } from "../feacture/admin/layouts/employee-layout";
 import { AdminDashboardNew } from "../feacture/admin/pages/admin/admin-dashboard-new";
 import { CategoryManagement } from "../feacture/admin/pages/admin/category-management";
+import { ProductManagement } from "../feacture/admin/pages/admin/product-management";
 import { ServiceManagement } from "../feacture/admin/pages/admin/service-management";
 import { UserManagement } from "../feacture/admin/pages/admin/user-management";
 import { ReportsAnalytics } from "../feacture/admin/pages/admin/reports-analytics";
@@ -70,7 +71,7 @@ export const router = createBrowserRouter([
     Component: AdminLayout,
     children: [
       { index: true, Component: AdminDashboardNew },
-      { path: "productos", Component: CategoryManagement },
+      { path: "productos", Component: ProductManagement },
       { path: "categorias", Component: CategoryManagement },
       { path: "inventario", Component: InventoryManagement },
       { path: "ventas", Component: SalesManagement },

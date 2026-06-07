@@ -18,21 +18,21 @@
   --admin-emerald-light: #7BAE7F;
   --admin-emerald-glow: rgba(123, 174, 127, 0.15);
   
-  --admin-card-bg: rgba(255, 255, 255, 0.04);
-  --admin-card-bg-hover: rgba(255, 255, 255, 0.06);
-  --admin-glass-border: rgba(255, 255, 255, 0.08);
-  --admin-glass-border-hover: rgba(255, 255, 255, 0.12);
-  --admin-overlay-light: rgba(255, 255, 255, 0.03);
-  --admin-overlay-mid: rgba(255, 255, 255, 0.06);
+  --admin-card-bg: rgba(255, 255, 255, 0.08);
+  --admin-card-bg-hover: rgba(255, 255, 255, 0.12);
+  --admin-glass-border: rgba(255, 255, 255, 0.12);
+  --admin-glass-border-hover: rgba(255, 255, 255, 0.16);
+  --admin-overlay-light: rgba(255, 255, 255, 0.05);
+  --admin-overlay-mid: rgba(255, 255, 255, 0.10);
   
-  --admin-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
-  --admin-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
-  --admin-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
-  --admin-shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.6);
-  --admin-shadow-glow: 0 12px 40px rgba(46, 94, 78, 0.2);
+  --admin-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.20);
+  --admin-shadow-md: 0 6px 18px rgba(0, 0, 0, 0.24);
+  --admin-shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.28);
+  --admin-shadow-xl: 0 16px 36px rgba(0, 0, 0, 0.32);
+  --admin-shadow-glow: 0 10px 30px rgba(46, 94, 78, 0.14);
 }
 
-.admin-root {
+.admin-root, [data-slot="sidebar-wrapper"] {
   background: 
     radial-gradient(ellipse 1400px 600px at 10% 15%, rgba(123, 174, 127, 0.12), transparent 20%),
     radial-gradient(ellipse 900px 400px at 85% 80%, rgba(46, 94, 78, 0.12), transparent 25%),
@@ -45,72 +45,50 @@
   min-height: 100vh !important;
 }
 
-.admin-root * {
-  --tw-text-opacity: 1 !important;
-}
-
 /* ========== TEXT COLOR CORRECTIONS ========== */
-.admin-root h1 {
+.admin-root h1:not([class*="text-"]),
+.admin-root h2:not([class*="text-"]) {
   color: var(--admin-text-primary) !important;
   font-weight: 600 !important;
 }
 
-.admin-root h2 {
-  color: var(--admin-text-primary) !important;
-  font-weight: 600 !important;
-}
-
-.admin-root h3,
-.admin-root h4,
-.admin-root h5,
-.admin-root h6 {
+.admin-root h3:not([class*="text-"]),
+.admin-root h4:not([class*="text-"]),
+.admin-root h5:not([class*="text-"]),
+.admin-root h6:not([class*="text-"]) {
   color: var(--admin-text-secondary) !important;
   font-weight: 600 !important;
 }
 
-.admin-root p {
+.admin-main p:not([class*="text-"]),
+.admin-main span:not([class*="text-"]) {
   color: var(--admin-text-secondary) !important;
 }
 
-.admin-root span {
-  color: var(--admin-text-secondary) !important;
-}
-
-.admin-root a {
+.admin-root a:not([class*="text-"]) {
   color: var(--admin-emerald-light) !important;
 }
 
-.admin-root a:hover {
+.admin-root a:hover:not([class*="text-"]) {
   color: var(--admin-text-primary) !important;
-}
-
-/* Override Tailwind text utilities */
-.admin-root [class*="text-white"] {
-  color: var(--admin-text-primary) !important;
-}
-
-.admin-root [class*="text-slate"],
-.admin-root [class*="text-gray"],
-.admin-root [class*="text-neutral"] {
-  color: var(--admin-text-secondary) !important;
 }
 
 /* ========== SIDEBAR STYLING ========== */
-.admin-sidebar {
+.admin-sidebar, [data-sidebar="sidebar"], [data-slot="sidebar-container"] {
   width: 280px !important;
   background: 
-    linear-gradient(180deg, rgba(10, 14, 12, 0.5) 0%, rgba(8, 12, 10, 0.7) 100%) !important;
-  backdrop-filter: blur(12px) !important;
+    linear-gradient(180deg, rgba(10, 14, 12, 0.92) 0%, rgba(8, 12, 10, 0.98) 100%) !important;
+  backdrop-filter: blur(6px) !important;
   border-right: 1px solid var(--admin-glass-border) !important;
   box-shadow: inset -1px 0 0 var(--admin-glass-border), 
               inset 0 -1px 0 var(--admin-glass-border) !important;
 }
 
-.admin-sidebar p {
+.admin-sidebar p:not([class*="text-"]), [data-sidebar="sidebar"] p:not([class*="text-"]), [data-slot="sidebar-container"] p:not([class*="text-"]) {
   color: var(--admin-text-secondary) !important;
 }
 
-.admin-sidebar .sidebar-group-label {
+[data-sidebar="sidebar"] .sidebar-group-label:not([class*="text-"]), [data-slot="sidebar-container"] .sidebar-group-label:not([class*="text-"]), .admin-sidebar .sidebar-group-label:not([class*="text-"]) {
   color: var(--admin-text-tertiary) !important;
   font-size: 0.75rem !important;
   font-weight: 600 !important;
@@ -119,41 +97,50 @@
 }
 
 /* ========== HEADER STYLING ========== */
-.admin-root header {
+.admin-root header, [data-slot="sidebar-inset"] header {
   background: 
     linear-gradient(180deg, 
-      rgba(255, 255, 255, 0.02) 0%, 
-      rgba(0, 0, 0, 0.08) 100%) !important;
+      rgba(255, 255, 255, 0.04) 0%, 
+      rgba(0, 0, 0, 0.12) 100%) !important;
   border-bottom: 1px solid var(--admin-glass-border) !important;
-  backdrop-filter: blur(10px) !important;
-  box-shadow: 0 1px 0 inset rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(8px) !important;
+  box-shadow: 0 1px 0 inset rgba(255, 255, 255, 0.06) !important;
+  min-height: 3.75rem !important;
+  height: auto !important;
+  padding: 0 1.5rem !important;
 }
 
 /* ========== MAIN CONTENT STYLING ========== */
-.admin-main {
+.admin-main, [data-slot="sidebar-inset"] {
   background: 
     radial-gradient(ellipse 1200px 400px at 50% 20%, rgba(255, 255, 255, 0.01), transparent 30%) !important;
-  min-height: calc(100vh - 4rem) !important;
+  min-height: calc(100vh - 3.75rem) !important;
+  padding: 1.5rem 1.75rem 1.5rem 2rem !important;
 }
 
-.admin-main > * {
-  color: var(--admin-text-primary) !important;
+.admin-main p:not([class*="text-"]),
+.admin-main span:not([class*="text-"]) , [data-slot="sidebar-inset"] p:not([class*="text-"]), [data-slot="sidebar-inset"] span:not([class*="text-"]) {
+  color: var(--admin-text-secondary) !important;
 }
 
 /* ========== CARD STYLING - GLASSMORPHISM ========== */
 .admin-main [class*="card"],
-.admin-main [class*="Card"] {
+.admin-main [class*="Card"],
+[data-slot="sidebar-inset"] [class*="card"],
+[data-slot="sidebar-inset"] [class*="Card"] {
   background: var(--admin-card-bg) !important;
   border: 1px solid var(--admin-glass-border) !important;
   backdrop-filter: blur(8px) !important;
-  box-shadow: var(--admin-shadow-lg) !important;
+  box-shadow: var(--admin-shadow-md) !important;
 }
 
 .admin-main [class*="card"]:hover,
-.admin-main [class*="Card"]:hover {
+.admin-main [class*="Card"]:hover,
+[data-slot="sidebar-inset"] [class*="card"]:hover,
+[data-slot="sidebar-inset"] [class*="Card"]:hover {
   background: var(--admin-card-bg-hover) !important;
   border-color: var(--admin-glass-border-hover) !important;
-  box-shadow: var(--admin-shadow-xl) !important;
+  box-shadow: var(--admin-shadow-lg) !important;
 }
 
 /* ========== BUTTON STYLING ========== */
@@ -198,4 +185,23 @@
   .admin-sidebar {
     display: none !important;
   }
+}
+
+/* Utility classes for components to use theme variables instead of inline colors */
+.admin-link {
+  color: var(--admin-text-secondary) !important;
+}
+.admin-link:hover {
+  color: var(--admin-text-primary) !important;
+}
+.admin-link-active {
+  color: var(--admin-text-primary) !important;
+  background: var(--admin-emerald-glow) !important;
+  box-shadow: var(--admin-shadow-glow) !important;
+}
+.admin-trigger {
+  color: var(--admin-primary-mid) !important;
+}
+.admin-trigger:hover {
+  color: var(--admin-text-primary) !important;
 }
