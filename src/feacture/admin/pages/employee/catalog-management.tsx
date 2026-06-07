@@ -40,7 +40,9 @@ import {
   Eye,
   Filter,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import productService from "../../../../services/product.service";
+import categoryService from "../../../../services/category.service";
 
 export function CatalogManagement() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -48,70 +50,89 @@ export function CatalogManagement() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const products = [
-    {
-      id: 1,
-      name: "Monstera Deliciosa",
-      category: "Interior",
-      price: 890,
-      stock: 25,
-      status: "activo",
-      image: "https://images.unsplash.com/photo-1525498128493-380d1990a112",
-    },
-    {
-      id: 2,
-      name: "Ficus Lyrata",
-      category: "Interior",
-      price: 1290,
-      stock: 15,
-      status: "activo",
-      image: "https://images.unsplash.com/photo-1531875985735-f135dac5f230",
-    },
-    {
-      id: 3,
-      name: "Lavanda",
-      category: "Exterior",
-      price: 340,
-      stock: 8,
-      status: "bajo-stock",
-      image: "https://images.unsplash.com/photo-1499002238440-d264edd596ec",
-    },
-    {
-      id: 4,
-      name: "Sansevieria",
-      category: "Interior",
-      price: 490,
-      stock: 30,
-      status: "activo",
-      image: "https://images.unsplash.com/photo-1687552212914-03a30c82053c",
-    },
-    {
-      id: 5,
-      name: "Maceta Cerámica",
-      category: "Macetas",
-      price: 650,
-      stock: 0,
-      status: "sin-stock",
-      image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411",
-    },
-    {
-      id: 6,
-      name: "Fertilizante Orgánico",
-      category: "Insumos",
-      price: 280,
-      stock: 45,
-      status: "activo",
-      image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b",
-    },
-  ];
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [productError, setProductError] = useState("");
+  const [categoryError, setCategoryError] = useState("");
 
-  const categories = [
-    "Interior",
-    "Exterior",
-    "Macetas",
-    "Insumos",
-    "Herramientas",
-  ];
+  useEffect(() => {
+    const loadProducts = async () => {
+      setLoadingProducts(true);
+      setProductError("");
+      try {
+        const data = await productService.getProducts();
+        setProducts(Array.isArray(data) ? data : []);
+      } catch (error) {
+        setProductError("No se pudieron cargar los productos.");
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    const loadCategories = async () => {
+      setLoadingCategories(true);
+      setCategoryError("");
+      try {
+        const data = await categoryService.getCategories();
+        setCategories(Array.isArray(data) ? data : []);
+      } catch (error) {
+        setCategoryError("No se pudieron cargar las categorías.");
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    loadProducts();
+    loadCategories();
+  }, []);
+
+  const productItems = products.map((product) => ({
+    id: product.id,
+    name: product.nombre || product.name || "Producto sin nombre",
+    category:
+      product.categoria?.nombre || product.categoria || product.category ||
+      "Sin categoría",
+    price: parseFloat(product.precio ?? product.price ?? 0) || 0,
+    stock: Number(product.stock ?? 0),
+    status:
+      product.estado ||
+      product.status ||
+      (Number(product.stock ?? 0) === 0
+        ? "sin-stock"
+        : Number(product.stock ?? 0) < 10
+        ? "bajo-stock"
+        : "activo"),
+    image:
+      product.imagenPrincipal ||
+      product.image ||
+      product.imagen ||
+      "https://images.unsplash.com/photo-1525498128493-380d1990a112",
+  }));
+
+  const categoryOptions = categories.map((category) => {
+    if (typeof category === "string") {
+      return { id: category, name: category };
+    }
+    return {
+      id: category.id || category.nombre || category.name || Math.random().toString(36).slice(2),
+      name: category.nombre || category.name || `Categoría ${category.id || ""}`,
+    };
+  });
+
+  const filteredProducts = useMemo(() => {
+    return productItems.filter((product) => {
+      const matchesSearch =
+        searchTerm.trim() === "" ||
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        selectedCategory === "all" ||
+        product.category.toLowerCase() === selectedCategory.toLowerCase();
+      return matchesSearch && matchesCategory;
+    });
+  }, [productItems, searchTerm, selectedCategory]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -144,11 +165,17 @@ export function CatalogManagement() {
               <SelectValue placeholder="Seleccionar" />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((cat) => (
-                <SelectItem key={cat} value={cat.toLowerCase()}>
-                  {cat}
-                </SelectItem>
-              ))}
+              {categoryOptions.length > 0 ? (
+                categoryOptions.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.name.toLowerCase()}>
+                    {cat.name}
+                  </SelectItem>
+                ))
+              ) : loadingCategories ? (
+                <SelectItem value="">Cargando categorías...</SelectItem>
+              ) : (
+                <SelectItem value="">No hay categorías disponibles</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -325,11 +352,15 @@ export function CatalogManagement() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas las categorías</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat} value={cat.toLowerCase()}>
-                  {cat}
-                </SelectItem>
-              ))}
+              {categoryOptions.length > 0 ? (
+                categoryOptions.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.name.toLowerCase()}>
+                    {cat.name}
+                  </SelectItem>
+                ))
+              ) : loadingCategories ? (
+                <SelectItem value="all">Cargando categorías...</SelectItem>
+              ) : null}
             </SelectContent>
           </Select>
         </div>
@@ -337,113 +368,123 @@ export function CatalogManagement() {
 
       {/* Products Table */}
       <Card className="bg-white/5 backdrop-blur-md border-white/10 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="border-white/10 hover:bg-white/5">
-              <TableHead className="text-gray-300">Producto</TableHead>
-              <TableHead className="text-gray-300">Categoría</TableHead>
-              <TableHead className="text-gray-300">Precio</TableHead>
-              <TableHead className="text-gray-300">Stock</TableHead>
-              <TableHead className="text-gray-300">Estado</TableHead>
-              <TableHead className="text-gray-300 text-right">
-                Acciones
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {products.map((product) => (
-              <TableRow
-                key={product.id}
-                className="border-white/10 hover:bg-white/5"
-              >
-                <TableCell>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-lg bg-white/10 overflow-hidden flex-shrink-0">
-                      {product.image ? (
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ImageIcon className="w-5 h-5 text-gray-400" />
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-white font-medium">{product.name}</p>
-                      <p className="text-gray-400 text-sm">ID: {product.id}</p>
-                    </div>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge className="bg-white/10 text-gray-400 border-white/20">
-                    {product.category}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-white">
-                  ${product.price.toLocaleString()}
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <span className="text-white">{product.stock}</span>
-                    <span className="text-gray-400 text-sm">unidades</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge className={getStatusColor(product.status)}>
-                    {product.status === "activo"
-                      ? "Activo"
-                      : product.status === "bajo-stock"
-                        ? "Bajo Stock"
-                        : "Sin Stock"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-gray-300 hover:text-white hover:bg-white/10"
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="bg-[#1E2B24] border-white/10 text-white max-w-2xl">
-                        <DialogHeader>
-                          <DialogTitle className="text-white text-xl">
-                            Editar Producto
-                          </DialogTitle>
-                          <DialogDescription className="text-gray-300">
-                            Modifica los datos del producto {product.name}
-                          </DialogDescription>
-                        </DialogHeader>
-                        <ProductFormContent />
-                      </DialogContent>
-                    </Dialog>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+        {loadingProducts ? (
+          <div className="p-8 text-center text-gray-300">Cargando productos...</div>
+        ) : productError ? (
+          <div className="p-8 text-center text-red-300">{productError}</div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="p-8 text-center text-gray-300">
+            No se encontraron productos.
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow className="border-white/10 hover:bg-white/5">
+                <TableHead className="text-gray-300">Producto</TableHead>
+                <TableHead className="text-gray-300">Categoría</TableHead>
+                <TableHead className="text-gray-300">Precio</TableHead>
+                <TableHead className="text-gray-300">Stock</TableHead>
+                <TableHead className="text-gray-300">Estado</TableHead>
+                <TableHead className="text-gray-300 text-right">
+                  Acciones
+                </TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filteredProducts.map((product) => (
+                <TableRow
+                  key={product.id}
+                  className="border-white/10 hover:bg-white/5"
+                >
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-lg bg-white/10 overflow-hidden flex-shrink-0">
+                        {product.image ? (
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <ImageIcon className="w-5 h-5 text-gray-400" />
+                          </div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">{product.name}</p>
+                        <p className="text-gray-400 text-sm">ID: {product.id}</p>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className="bg-white/10 text-gray-400 border-white/20">
+                      {product.category}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-white">
+                    ${product.price.toLocaleString()}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span className="text-white">{product.stock}</span>
+                      <span className="text-gray-400 text-sm">unidades</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getStatusColor(product.status)}>
+                      {product.status === "activo"
+                        ? "Activo"
+                        : product.status === "bajo-stock"
+                          ? "Bajo Stock"
+                          : "Sin Stock"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-gray-300 hover:text-white hover:bg-white/10"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="bg-[#1E2B24] border-white/10 text-white max-w-2xl">
+                          <DialogHeader>
+                            <DialogTitle className="text-white text-xl">
+                              Editar Producto
+                            </DialogTitle>
+                            <DialogDescription className="text-gray-300">
+                              Modifica los datos del producto {product.name}
+                            </DialogDescription>
+                          </DialogHeader>
+                          <ProductFormContent />
+                        </DialogContent>
+                      </Dialog>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </Card>
     </div>
   );
