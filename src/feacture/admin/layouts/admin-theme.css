@@ -1,0 +1,201 @@
+/* ========================================
+   PREMIUM ADMIN THEME - Dark Luxury Workspace
+   Apple/Pinterest Inspired, Organic Elegance
+   ======================================== */
+
+:root {
+  --admin-primary-light: #E8EFE5;
+  --admin-primary-mid: #D8E3D6;
+  --admin-secondary-light: #B8C5B3;
+  --admin-secondary-mid: #A5B1A5;
+  --admin-secondary-dark: #7F8B7E;
+  --admin-text-primary: #E8EFE5;
+  --admin-text-secondary: #B8C5B3;
+  --admin-text-tertiary: #8B9A88;
+  
+  --admin-emerald-dark: #2E5E4E;
+  --admin-emerald-mid: #45796E;
+  --admin-emerald-light: #7BAE7F;
+  --admin-emerald-glow: rgba(123, 174, 127, 0.15);
+  
+  --admin-card-bg: rgba(255, 255, 255, 0.04);
+  --admin-card-bg-hover: rgba(255, 255, 255, 0.06);
+  --admin-glass-border: rgba(255, 255, 255, 0.08);
+  --admin-glass-border-hover: rgba(255, 255, 255, 0.12);
+  --admin-overlay-light: rgba(255, 255, 255, 0.03);
+  --admin-overlay-mid: rgba(255, 255, 255, 0.06);
+  
+  --admin-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --admin-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --admin-shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.5);
+  --admin-shadow-xl: 0 24px 64px rgba(0, 0, 0, 0.6);
+  --admin-shadow-glow: 0 12px 40px rgba(46, 94, 78, 0.2);
+}
+
+.admin-root {
+  background: 
+    radial-gradient(ellipse 1400px 600px at 10% 15%, rgba(123, 174, 127, 0.12), transparent 20%),
+    radial-gradient(ellipse 900px 400px at 85% 80%, rgba(46, 94, 78, 0.12), transparent 25%),
+    radial-gradient(ellipse 600px 300px at 50% 50%, rgba(45, 79, 68, 0.06), transparent 30%),
+    linear-gradient(135deg, #070f0a 0%, #0a1410 40%, #080d09 60%, #0a1210 100%) !important;
+  
+  color: var(--admin-text-primary) !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh !important;
+}
+
+.admin-root * {
+  --tw-text-opacity: 1 !important;
+}
+
+/* ========== TEXT COLOR CORRECTIONS ========== */
+.admin-root h1 {
+  color: var(--admin-text-primary) !important;
+  font-weight: 600 !important;
+}
+
+.admin-root h2 {
+  color: var(--admin-text-primary) !important;
+  font-weight: 600 !important;
+}
+
+.admin-root h3,
+.admin-root h4,
+.admin-root h5,
+.admin-root h6 {
+  color: var(--admin-text-secondary) !important;
+  font-weight: 600 !important;
+}
+
+.admin-root p {
+  color: var(--admin-text-secondary) !important;
+}
+
+.admin-root span {
+  color: var(--admin-text-secondary) !important;
+}
+
+.admin-root a {
+  color: var(--admin-emerald-light) !important;
+}
+
+.admin-root a:hover {
+  color: var(--admin-text-primary) !important;
+}
+
+/* Override Tailwind text utilities */
+.admin-root [class*="text-white"] {
+  color: var(--admin-text-primary) !important;
+}
+
+.admin-root [class*="text-slate"],
+.admin-root [class*="text-gray"],
+.admin-root [class*="text-neutral"] {
+  color: var(--admin-text-secondary) !important;
+}
+
+/* ========== SIDEBAR STYLING ========== */
+.admin-sidebar {
+  width: 280px !important;
+  background: 
+    linear-gradient(180deg, rgba(10, 14, 12, 0.5) 0%, rgba(8, 12, 10, 0.7) 100%) !important;
+  backdrop-filter: blur(12px) !important;
+  border-right: 1px solid var(--admin-glass-border) !important;
+  box-shadow: inset -1px 0 0 var(--admin-glass-border), 
+              inset 0 -1px 0 var(--admin-glass-border) !important;
+}
+
+.admin-sidebar p {
+  color: var(--admin-text-secondary) !important;
+}
+
+.admin-sidebar .sidebar-group-label {
+  color: var(--admin-text-tertiary) !important;
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+}
+
+/* ========== HEADER STYLING ========== */
+.admin-root header {
+  background: 
+    linear-gradient(180deg, 
+      rgba(255, 255, 255, 0.02) 0%, 
+      rgba(0, 0, 0, 0.08) 100%) !important;
+  border-bottom: 1px solid var(--admin-glass-border) !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 0 1px 0 inset rgba(255, 255, 255, 0.05) !important;
+}
+
+/* ========== MAIN CONTENT STYLING ========== */
+.admin-main {
+  background: 
+    radial-gradient(ellipse 1200px 400px at 50% 20%, rgba(255, 255, 255, 0.01), transparent 30%) !important;
+  min-height: calc(100vh - 4rem) !important;
+}
+
+.admin-main > * {
+  color: var(--admin-text-primary) !important;
+}
+
+/* ========== CARD STYLING - GLASSMORPHISM ========== */
+.admin-main [class*="card"],
+.admin-main [class*="Card"] {
+  background: var(--admin-card-bg) !important;
+  border: 1px solid var(--admin-glass-border) !important;
+  backdrop-filter: blur(8px) !important;
+  box-shadow: var(--admin-shadow-lg) !important;
+}
+
+.admin-main [class*="card"]:hover,
+.admin-main [class*="Card"]:hover {
+  background: var(--admin-card-bg-hover) !important;
+  border-color: var(--admin-glass-border-hover) !important;
+  box-shadow: var(--admin-shadow-xl) !important;
+}
+
+/* ========== BUTTON STYLING ========== */
+.admin-main button {
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.admin-main [class*="bg-gradient-to-br"] {
+  background: linear-gradient(135deg, #2E5E4E 0%, #3D7A5E 100%) !important;
+  box-shadow: 0 8px 24px rgba(46, 94, 78, 0.3) !important;
+}
+
+.admin-main [class*="bg-gradient-to-br"]:hover {
+  background: linear-gradient(135deg, #3D7A5E 0%, #4D8A6E 100%) !important;
+  box-shadow: 0 12px 32px rgba(46, 94, 78, 0.4) !important;
+}
+
+/* ========== INPUT/FORM STYLING ========== */
+.admin-main input,
+.admin-main textarea,
+.admin-main select {
+  background: var(--admin-card-bg) !important;
+  border: 1px solid var(--admin-glass-border) !important;
+  color: var(--admin-text-primary) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.admin-main input::placeholder,
+.admin-main textarea::placeholder {
+  color: var(--admin-text-tertiary) !important;
+}
+
+.admin-main input:focus,
+.admin-main textarea:focus,
+.admin-main select:focus {
+  background: var(--admin-card-bg-hover) !important;
+  border-color: var(--admin-emerald-light) !important;
+}
+
+/* ========== RESPONSIVE TWEAKS ========== */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    display: none !important;
+  }
+}

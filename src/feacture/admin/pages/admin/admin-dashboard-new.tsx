@@ -1,96 +1,45 @@
 import { Card } from "../../components/ui/card";
 import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
-import {
-  TrendingUp,
-  TrendingDown,
-  Package,
-  ShoppingCart,
-  Calendar,
-  Users,
-  DollarSign,
-  AlertTriangle,
-  Sparkles,
-  ArrowRight,
-  Eye,
-  CheckCircle,
-  Clock,
-} from "lucide-react";
+import { Calendar, ShoppingCart, AlertTriangle, Package, Sparkles, ArrowRight } from "lucide-react";
 import { Link } from "react-router";
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
 
 export function AdminDashboardNew() {
   const kpiCards = [
     {
-      title: "Ingresos Totales",
-      value: "$245,890",
-      change: "+12.5%",
-      trend: "up",
-      icon: DollarSign,
-      color: "text-green-400",
-      bgColor: "bg-green-500/10",
-      period: "Este mes",
+      title: "Citas Hoy",
+      value: "12",
+      icon: Calendar,
+      color: "text-emerald-300",
+      bgColor: "bg-emerald-500/10",
+      period: "3 confirmadas",
     },
     {
-      title: "Órdenes Totales",
-      value: "1,245",
-      change: "+8.2%",
-      trend: "up",
+      title: "Pedidos Pendientes",
+      value: "8",
       icon: ShoppingCart,
-      color: "text-blue-400",
-      bgColor: "bg-blue-500/10",
-      period: "Este mes",
+      color: "text-slate-200",
+      bgColor: "bg-slate-400/10",
+      period: "Revisión activa",
     },
     {
-      title: "Clientes Activos",
-      value: "3,450",
-      change: "+15.3%",
-      trend: "up",
-      icon: Users,
-      color: "text-purple-400",
-      bgColor: "bg-purple-500/10",
-      period: "Total",
-    },
-    {
-      title: "Productos",
-      value: "485",
-      change: "+23",
-      trend: "up",
-      icon: Package,
-      color: "text-orange-400",
-      bgColor: "bg-orange-500/10",
-      period: "En catálogo",
+      title: "Alertas de Inventario",
+      value: "3",
+      icon: AlertTriangle,
+      color: "text-orange-300",
+      bgColor: "bg-orange-400/10",
+      period: "Crítico",
     },
   ];
 
-  const revenueData = [
-    { month: "Ene", ventas: 45000, servicios: 28000 },
-    { month: "Feb", ventas: 52000, servicios: 32000 },
-    { month: "Mar", ventas: 61000, servicios: 35000 },
-    { month: "Abr", ventas: 58000, servicios: 38000 },
-    { month: "May", ventas: 75000, servicios: 42000 },
-  ];
-
-  const categoryData = [
-    { name: "Interior", value: 35, color: "#2E5E4E" },
-    { name: "Exterior", value: 25, color: "#7BAE7F" },
-    { name: "Macetas", value: 20, color: "#1E2B24" },
-    { name: "Herramientas", value: 12, color: "#A8D5BA" },
-    { name: "Insumos", value: 8, color: "#5C8D7E" },
+  const lineData = [
+    { month: "Ene", value: 35 },
+    { month: "Feb", value: 42 },
+    { month: "Mar", value: 38 },
+    { month: "Abr", value: 47 },
+    { month: "May", value: 52 },
+    { month: "Jun", value: 48 },
   ];
 
   const recentOrders = [
@@ -118,14 +67,6 @@ export function AdminDashboardNew() {
       status: "pendiente",
       time: "Hace 2 horas",
     },
-    {
-      id: "#12348",
-      customer: "Roberto Sánchez",
-      product: "Sustrato Premium",
-      amount: 450,
-      status: "completado",
-      time: "Hace 3 horas",
-    },
   ];
 
   const lowStockAlerts = [
@@ -148,313 +89,196 @@ export function AdminDashboardNew() {
       employee: "María García",
     },
     {
-      client: "Sofia Vargas",
+      client: "Sofía Vargas",
       service: "Consultoría",
       date: "Mañana, 10:00 AM",
       employee: "Carlos López",
     },
   ];
 
-  const aiAnalytics = [
-    { module: "Asistente IA", queries: 1245, change: "+18%" },
-    { module: "Escáner Plantas", scans: 892, change: "+25%" },
-    { module: "Detección Enfermedades", detections: 456, change: "+12%" },
-  ];
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completado":
-        return "bg-green-500/20 text-green-400 border-green-500/30";
+        return "bg-emerald-500/15 text-emerald-300 border border-emerald-500/20";
       case "en-proceso":
-        return "bg-blue-500/20 text-blue-400 border-blue-500/30";
+        return "bg-sky-500/15 text-sky-300 border border-sky-500/20";
       case "pendiente":
-        return "bg-orange-500/20 text-orange-400 border-orange-500/30";
+        return "bg-orange-500/15 text-orange-300 border border-orange-500/20";
       default:
-        return "bg-[#F4F6F1] text-[#1E2B24] border-[#DCE7DF]";
+        return "bg-slate-200/10 text-slate-500 border border-slate-200/30";
     }
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="space-y-8">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-[#1E2B24]">
-            Panel de Administración
+          <h1 className="text-4xl font-semibold text-[#E8EFE5]">
+            Control de operaciones
           </h1>
-          <p className="text-[#4B6358] mt-1">
-            Control total del ecosistema Trebol Paisajismo
+          <p className="mt-2 max-w-2xl text-sm text-[#B8C5B3]">
+            Un espacio sereno para gestionar citas, pedidos y stock con precisión premium.
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-[#4B6358] text-sm">Última actualización</p>
-          <p className="text-[#1E2B24]">31 Mayo 2026 - 10:45 AM</p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {kpiCards.map((kpi, index) => (
+            <Card
+              key={index}
+              className="p-5 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] shadow-[0_12px_40px_rgba(46,94,78,0.2)] rounded-[1.5rem] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.18em] text-[#8B9A88]">
+                    {kpi.title}
+                  </p>
+                  <p className="mt-3 text-3xl font-semibold text-[#E8EFE5]">
+                    {kpi.value}
+                  </p>
+                  <p className="mt-2 text-sm text-[#B8C5B3]">{kpi.period}</p>
+                </div>
+                <div className={`flex h-12 w-12 items-center justify-center rounded-3xl ${kpi.bgColor}`}>
+                  <kpi.icon className={`w-5 h-5 ${kpi.color}`} />
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpiCards.map((kpi, index) => (
-          <Card
-            key={index}
-            className="p-6 bg-white/70 backdrop-blur-md border-white/20 transition-all"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <p className="text-[#4B6358] text-sm mb-1">{kpi.title}</p>
-                <p className="text-3xl font-semibold text-[#1E2B24] mb-2">
-                  {kpi.value}
-                </p>
-                <div className="flex items-center gap-1 mb-1">
-                  {kpi.trend === "up" ? (
-                    <TrendingUp className="w-3 h-3 text-green-400" />
-                  ) : (
-                    <TrendingDown className="w-3 h-3 text-red-400" />
-                  )}
-                  <span
-                    className={`text-xs ${kpi.trend === "up" ? "text-green-400" : "text-red-400"}`}
-                  >
-                    {kpi.change}
-                  </span>
-                  <span className="text-xs text-[#6B7C74]">vs mes anterior</span>
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+        <div className="xl:col-span-7 space-y-6">
+          <Card className="p-8 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] shadow-[0_16px_48px_rgba(46,94,78,0.2)] rounded-[2rem]">
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <div>
+                <p className="text-sm text-[#8B9A88]">Agenda destacada</p>
+                <h2 className="text-2xl font-semibold text-[#E8EFE5]">
+                  Próximas citas
+                </h2>
+              </div>
+              <Button className="rounded-2xl bg-gradient-to-br from-[#2E5E4E] to-[#3D7A5E] px-5 py-3 text-white hover:from-[#3D7A5E] hover:to-[#4D8A6E] shadow-[0_8px_24px_rgba(46,94,78,0.3)] transition-all duration-300">
+                Agregar cita
+              </Button>
+            </div>
+
+            <div className="grid gap-4">
+              {upcomingAppointments.map((appointment, index) => (
+                <div
+                  key={index}
+                  className="rounded-[1.75rem] border border-white/[0.08] bg-white/[0.04] p-6 shadow-[0_8px_24px_rgba(0,0,0,0.3)] backdrop-blur-sm hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-lg font-semibold text-[#E8EFE5]">{appointment.client}</p>
+                      <p className="mt-1 text-sm text-[#B8C5B3]">{appointment.service}</p>
+                    </div>
+                    <Badge className="rounded-2xl bg-[#7BAE7F]/15 text-[#7BAE7F] border border-[#7BAE7F]/30">
+                      {appointment.date}
+                    </Badge>
+                  </div>
+                  <p className="mt-4 text-sm text-[#8B9A88]">Responsable: {appointment.employee}</p>
                 </div>
-                <p className="text-xs text-[#6B7C74]">{kpi.period}</p>
-              </div>
-              <div className={`p-3 rounded-xl ${kpi.bgColor}`}>
-                <kpi.icon className={`w-6 h-6 ${kpi.color}`} />
-              </div>
+              ))}
             </div>
           </Card>
-        ))}
-      </div>
 
-      {/* Charts Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Chart */}
-        <Card className="lg:col-span-2 p-6 bg-white/70 backdrop-blur-md border-white/20">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-xl font-semibold text-[#1E2B24]">
-                Ingresos por Categoría
-              </h2>
-              <p className="text-[#4B6358] text-sm">Últimos 5 meses</p>
-            </div>
-            <Link to="/admin/reportes">
-              <Button
-                variant="ghost"
-                className="text-[#2E5E4E] hover:text-[#1E2B24] hover:bg-[#7BAE7F]/20"
-              >
-                Ver reportes completos
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={revenueData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
-              <XAxis dataKey="month" stroke="rgba(255,255,255,0.6)" />
-              <YAxis stroke="rgba(255,255,255,0.6)" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "rgba(30, 43, 36, 0.95)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "8px",
-                  color: "#fff",
-                }}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="ventas"
-                stroke="#7BAE7F"
-                strokeWidth={3}
-                name="Ventas"
-                dot={{ fill: "#7BAE7F", r: 4 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="servicios"
-                stroke="#2E5E4E"
-                strokeWidth={3}
-                name="Servicios"
-                dot={{ fill: "#2E5E4E", r: 4 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </Card>
-
-        {/* Category Distribution */}
-        <Card className="p-6 bg-white/70 backdrop-blur-md border-white/20">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-[#1E2B24]">
-              Distribución por Categoría
-            </h2>
-            <p className="text-[#4B6358] text-sm">Ventas este mes</p>
-          </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={categoryData}
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={80}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {categoryData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "rgba(30, 43, 36, 0.95)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: "8px",
-                  color: "#fff",
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="space-y-2 mt-4">
-            {categoryData.map((cat, index) => (
-              <div key={index} className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: cat.color }}
-                  />
-                  <span className="text-[#6B7C74] text-sm">{cat.name}</span>
-                </div>
-                <span className="text-[#1E2B24] font-semibold">{cat.value}%</span>
+          <Card className="p-8 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] shadow-[0_16px_48px_rgba(46,94,78,0.2)] rounded-[2rem]">
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <div>
+                <p className="text-sm text-[#8B9A88]">Prioridad operacional</p>
+                <h2 className="text-2xl font-semibold text-[#E8EFE5]">
+                  Pedidos y stock
+                </h2>
               </div>
-            ))}
-          </div>
-        </Card>
-      </div>
-
-      {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Orders */}
-        <Card className="lg:col-span-2 bg-white/70 backdrop-blur-md border-white/20 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-xl font-semibold text-[#1E2B24]">
-                Órdenes Recientes
-              </h2>
-              <p className="text-[#4B6358] text-sm">
-                {recentOrders.length} órdenes nuevas
-              </p>
+              <Sparkles className="w-6 h-6 text-[#7BAE7F]" />
             </div>
-            <Link to="/admin/ventas">
-              <Button
-                variant="ghost"
-                className="text-[#2E5E4E] hover:text-[#1E2B24] hover:bg-[#7BAE7F]/20"
-              >
-                Ver todas
-              </Button>
-            </Link>
-          </div>
-          <div className="space-y-3">
-            {recentOrders.map((order) => (
-              <div
-                key={order.id}
-                className="p-4 rounded-xl bg-white/70 border border-white/20 hover:bg-white/80 transition-all"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4 flex-1">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2E5E4E] to-[#7BAE7F] flex items-center justify-center">
-                      <ShoppingCart className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[#1E2B24] font-medium">{order.customer}</p>
-                      <p className="text-[#4B6358] text-sm">{order.product}</p>
-                    </div>
-                  </div>
-                  <div className="text-right flex items-center gap-4">
+            <div className="grid gap-4">
+              {recentOrders.map((order) => (
+                <div
+                  key={order.id}
+                  className="rounded-[1.75rem] border border-white/[0.08] bg-white/[0.04] p-5 shadow-[0_8px_24px_rgba(0,0,0,0.3)] backdrop-blur-sm hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
+                >
+                  <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-[#7BAE7F] font-semibold">
-                        ${order.amount.toLocaleString()}
-                      </p>
-                      <p className="text-[#6B7C74] text-xs">{order.time}</p>
+                      <p className="text-base font-semibold text-[#E8EFE5]">{order.customer}</p>
+                      <p className="text-sm text-[#B8C5B3]">{order.product}</p>
                     </div>
                     <Badge className={getStatusColor(order.status)}>
                       {order.status === "completado"
                         ? "Completado"
                         : order.status === "en-proceso"
-                          ? "En Proceso"
-                          : "Pendiente"}
+                        ? "En Proceso"
+                        : "Pendiente"}
                     </Badge>
                   </div>
+                  <div className="mt-4 flex items-center justify-between text-sm text-[#8B9A88]">
+                    <span>{order.time}</span>
+                    <span>${order.amount.toLocaleString()}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </Card>
+              ))}
+            </div>
+          </Card>
+        </div>
 
-        {/* Alerts Column */}
-        <div className="space-y-6">
-          {/* Low Stock Alerts */}
-          <Card className="bg-white/70 backdrop-blur-md border-white/20 p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle className="w-5 h-5 text-orange-400" />
-              <h2 className="text-lg font-semibold text-[#1E2B24]">
-                Alertas de Stock
-              </h2>
+        <div className="xl:col-span-5 space-y-6">
+          <Card className="p-8 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] shadow-[0_16px_48px_rgba(46,94,78,0.2)] rounded-[2rem]">
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <div>
+                <p className="text-sm text-[#8B9A88]">Productos premium</p>
+                <h2 className="text-2xl font-semibold text-[#E8EFE5]">
+                  Catálogo en foco
+                </h2>
+              </div>
+              <Package className="w-6 h-6 text-[#7BAE7F]" />
+            </div>
+            <div className="space-y-4">
+              {[
+                { name: "Monstera Deliciosa", detail: "Stock 24 · Premium" },
+                { name: "Ficus Lyrata", detail: "Stock 12 · Lo más buscado" },
+                { name: "Sustrato Premium", detail: "Stock 56 · Bestseller" },
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  className="rounded-[1.75rem] border border-white/[0.08] bg-white/[0.04] p-5 backdrop-blur-sm hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
+                >
+                  <p className="text-base font-semibold text-[#E8EFE5]">{item.name}</p>
+                  <p className="mt-1 text-sm text-[#B8C5B3]">{item.detail}</p>
+                </div>
+              ))}
+            </div>
+          </Card>
+
+          <Card className="p-8 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] shadow-[0_16px_48px_rgba(46,94,78,0.2)] rounded-[2rem]">
+            <div className="flex items-center justify-between gap-4 mb-6">
+              <div>
+                <p className="text-sm text-[#8B9A88]">Alerta inmediata</p>
+                <h2 className="text-2xl font-semibold text-[#E8EFE5]">
+                  Inventario crítico
+                </h2>
+              </div>
+              <AlertTriangle className="w-6 h-6 text-orange-300" />
             </div>
             <div className="space-y-3">
               {lowStockAlerts.map((alert, index) => (
                 <div
                   key={index}
-                  className="p-3 rounded-lg bg-orange-500/10 border border-orange-500/20"
+                  className="rounded-[1.75rem] border border-white/[0.08] bg-white/[0.04] p-5 backdrop-blur-sm hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
                 >
-                  <p className="text-[#1E2B24] text-sm font-medium mb-1">
-                    {alert.product}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-orange-400 text-xs">
-                      Stock: {alert.stock} / Min: {alert.min}
-                    </span>
+                  <div className="flex items-center justify-between gap-4">
+                    <p className="text-base font-semibold text-[#E8EFE5]">{alert.product}</p>
                     <Badge
                       className={
                         alert.urgency === "alta"
-                          ? "bg-red-500/20 text-red-400 border-red-500/30 text-xs"
-                          : "bg-orange-500/20 text-orange-400 border-orange-500/30 text-xs"
+                          ? "bg-red-500/15 text-red-300 border border-red-500/20"
+                          : "bg-orange-500/15 text-orange-300 border border-orange-500/20"
                       }
                     >
-                      {alert.urgency}
+                      {alert.urgency === "alta" ? "Alta" : "Media"}
                     </Badge>
                   </div>
-                </div>
-              ))}
-            </div>
-            <Link to="/admin/inventario">
-              <Button className="w-full mt-4 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30">
-                Gestionar Inventario
-              </Button>
-            </Link>
-          </Card>
-
-          {/* Upcoming Appointments */}
-          <Card className="bg-white/70 backdrop-blur-md border-white/20 p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Calendar className="w-5 h-5 text-blue-400" />
-              <h2 className="text-lg font-semibold text-[#1E2B24]">
-                Próximas Citas
-              </h2>
-            </div>
-            <div className="space-y-3">
-              {upcomingAppointments.map((apt, index) => (
-                <div
-                  key={index}
-                  className="p-3 rounded-lg bg-white/70 border border-white/20"
-                >
-                  <p className="text-[#1E2B24] text-sm font-medium">{apt.client}</p>
-                  <p className="text-[#4B6358] text-xs mb-1">{apt.service}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-blue-400 text-xs">{apt.date}</span>
-                    <span className="text-[#6B7C74] text-xs">{apt.employee}</span>
-                  </div>
+                  <p className="mt-2 text-sm text-[#B8C5B3]">
+                    Stock {alert.stock} · Mínimo {alert.min}
+                  </p>
                 </div>
               ))}
             </div>
@@ -462,43 +286,36 @@ export function AdminDashboardNew() {
         </div>
       </div>
 
-      {/* AI Analytics */}
-      <Card className="bg-white/70 backdrop-blur-md border-white/20 p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 rounded-xl bg-purple-500/10">
-            <Sparkles className="w-6 h-6 text-purple-400" />
-          </div>
+      <Card className="p-8 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] shadow-[0_16px_48px_rgba(46,94,78,0.2)] rounded-[2rem]">
+        <div className="flex items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-xl font-semibold text-[#1E2B24]">
-              Análisis de Módulos IA
+            <p className="text-sm text-[#8B9A88]">Ritmo operativo</p>
+            <h2 className="text-2xl font-semibold text-[#E8EFE5]">
+              Flujo de actividades
             </h2>
-            <p className="text-[#4B6358] text-sm">
-              Rendimiento de funciones inteligentes
-            </p>
           </div>
+          <Link to="/admin/reportes">
+            <Button variant="secondary" className="rounded-2xl text-[#E8EFE5] hover:text-white border-white/[0.08] hover:border-white/[0.12] hover:bg-white/[0.06]">
+              Ver reportes
+            </Button>
+          </Link>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {aiAnalytics.map((ai, index) => (
-            <div
-              key={index}
-              className="p-4 rounded-xl bg-white/70 border border-white/20"
-            >
-              <p className="text-[#4B6358] text-sm mb-1">{ai.module}</p>
-              <div className="flex items-end justify-between">
-                <p className="text-2xl font-semibold text-[#1E2B24]">
-                  {ai.queries || ai.scans || ai.detections}
-                </p>
-                <span className="text-green-400 text-sm">{ai.change}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <Link to="/admin/ia">
-          <Button className="w-full mt-4 bg-[#2E5E4E] hover:bg-[#265a46] text-white border border-[#2E5E4E]">
-            Ver Analytics Completos de IA
-            <ArrowRight className="w-4 h-4 ml-2" />
-          </Button>
-        </Link>
+        <ResponsiveContainer width="100%" height={280}>
+          <LineChart data={lineData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
+            <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} />
+            <XAxis dataKey="month" stroke="rgba(255,255,255,0.38)" />
+            <YAxis stroke="rgba(255,255,255,0.38)" />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "rgba(8, 12, 10, 0.95)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: "12px",
+                color: "#E8EFE5",
+              }}
+            />
+            <Line type="monotone" dataKey="value" stroke="#7BAE7F" strokeWidth={3} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
       </Card>
     </div>
   );

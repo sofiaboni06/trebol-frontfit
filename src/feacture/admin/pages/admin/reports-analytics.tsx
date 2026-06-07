@@ -145,8 +145,8 @@ export function ReportsAnalytics() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-white flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-blue-500/10">
+          <h1 className="text-3xl font-semibold text-[#E8EFE5] flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-blue-500/15 border border-blue-500/30">
               <BarChart3 className="w-8 h-8 text-blue-400" />
             </div>
             Reportes y Análisis

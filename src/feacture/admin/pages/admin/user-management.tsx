@@ -188,45 +188,45 @@ export function UserManagement() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-white">
+          <h1 className="text-3xl font-semibold text-[#E8EFE5]">
             Gestión de Usuarios
           </h1>
-          <p className="text-gray-300 mt-1">
+          <p className="text-[#B8C5B3] mt-1">
             Administra clientes, empleados y roles
           </p>
         </div>
         <Dialog>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-[#2E5E4E] to-[#7BAE7F] hover:opacity-90 text-white">
+            <Button className="bg-gradient-to-br from-[#2E5E4E] to-[#3D7A5E] hover:from-[#3D7A5E] hover:to-[#4D8A6E] text-white shadow-[0_8px_24px_rgba(46,94,78,0.3)] transition-all duration-300">
               <UserPlus className="w-4 h-4 mr-2" />
               Nuevo Usuario
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-[#1E2B24] border-white/10 text-white max-w-2xl">
+          <DialogContent className="bg-[#0B1410] border-white/[0.08] text-[#E8EFE5] max-w-2xl">
             <DialogHeader>
-              <DialogTitle className="text-white text-xl">
+              <DialogTitle className="text-[#E8EFE5] text-xl">
                 Crear Nuevo Usuario
               </DialogTitle>
-              <DialogDescription className="text-gray-300">
+              <DialogDescription className="text-[#B8C5B3]">
                 Completa los datos del usuario
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-white">Nombre Completo</Label>
+                  <Label className="text-[#E8EFE5]">Nombre Completo</Label>
                   <Input
                     placeholder="Ej: Juan Pérez"
-                    className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+                    className="bg-white/[0.04] border-white/[0.08] text-[#E8EFE5] placeholder:text-[#8B9A88]"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white">Rol</Label>
+                  <Label className="text-[#E8EFE5]">Rol</Label>
                   <Select>
-                    <SelectTrigger className="bg-white/5 border-white/10 text-[#1E2B24]">
+                    <SelectTrigger className="bg-white/[0.04] border-white/[0.08] text-[#E8EFE5]">
                       <SelectValue placeholder="Seleccionar rol" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-[#0B1410] border-white/[0.08]">
                       <SelectItem value="cliente">Cliente</SelectItem>
                       <SelectItem value="empleado">Empleado</SelectItem>
                       <SelectItem value="admin">Administrador</SelectItem>
@@ -236,32 +236,32 @@ export function UserManagement() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-white">Email</Label>
+                  <Label className="text-[#E8EFE5]">Email</Label>
                   <Input
                     type="email"
                     placeholder="usuario@email.com"
-                    className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+                    className="bg-white/[0.04] border-white/[0.08] text-[#E8EFE5] placeholder:text-[#8B9A88]"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-white">Teléfono</Label>
+                  <Label className="text-[#E8EFE5]">Teléfono</Label>
                   <Input
                     type="tel"
                     placeholder="+52 55 1234 5678"
-                    className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+                    className="bg-white/[0.04] border-white/[0.08] text-[#E8EFE5] placeholder:text-[#8B9A88]"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label className="text-white">Contraseña Temporal</Label>
+                <Label className="text-[#E8EFE5]">Contraseña Temporal</Label>
                 <Input
                   type="password"
                   placeholder="••••••••"
-                  className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+                  className="bg-white/[0.04] border-white/[0.08] text-[#E8EFE5] placeholder:text-[#8B9A88]"
                 />
               </div>
               <div className="flex gap-3 pt-4">
-                <Button className="flex-1 bg-gradient-to-r from-[#2E5E4E] to-[#7BAE7F] hover:opacity-90 text-white">
+                <Button className="flex-1 bg-gradient-to-br from-[#2E5E4E] to-[#3D7A5E] hover:from-[#3D7A5E] hover:to-[#4D8A6E] text-white shadow-[0_8px_24px_rgba(46,94,78,0.3)]">
                   <CheckCircle className="w-4 h-4 mr-2" />
                   Crear Usuario
                 </Button>
@@ -276,12 +276,12 @@ export function UserManagement() {
         {userStats.map((stat, index) => (
           <Card
             key={index}
-            className="p-6 bg-white/5 backdrop-blur-md border-white/10 hover:bg-white/10 transition-all"
+            className="p-6 bg-white/[0.04] backdrop-blur-xl border-white/[0.08] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all shadow-[0_8px_24px_rgba(0,0,0,0.3)]"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <p className="text-gray-300 text-sm mb-1">{stat.label}</p>
-                <p className="text-3xl font-semibold text-white">
+                <p className="text-[#B8C5B3] text-sm mb-1">{stat.label}</p>
+                <p className="text-3xl font-semibold text-[#E8EFE5]">
                   {stat.value}
                 </p>
               </div>

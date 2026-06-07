@@ -7,45 +7,45 @@ export function SettingsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-[#1E2B24]">Configuración</h1>
-          <p className="text-[#4B6358] mt-1">
+          <h1 className="text-3xl font-semibold text-[#E8EFE5]">Configuración</h1>
+          <p className="text-[#B8C5B3] mt-1">
             Ajustes de perfil, tema, notificaciones, seguridad y apariencia.
           </p>
         </div>
-        <Button className="bg-[#2E5E4E] hover:bg-[#265a46] text-white">
+        <Button className="bg-gradient-to-br from-[#2E5E4E] to-[#3D7A5E] hover:from-[#3D7A5E] hover:to-[#4D8A6E] text-white shadow-[0_8px_24px_rgba(46,94,78,0.3)] transition-all duration-300">
           Guardar cambios
         </Button>
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <Card className="p-6 bg-white/70 backdrop-blur-md border-white/20">
+        <Card className="p-6 bg-white/[0.04] backdrop-blur-xl border-white/[0.08] rounded-[1.5rem] shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-xl bg-[#2E5E4E]/10">
-              <User className="w-5 h-5 text-[#2E5E4E]" />
+            <div className="p-3 rounded-xl bg-[#2E5E4E]/15 border border-[#2E5E4E]/30">
+              <User className="w-5 h-5 text-[#7BAE7F]" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-[#1E2B24]">Perfil Admin</h2>
-              <p className="text-[#4B6358] text-sm">Nombre, email y permisos de tu cuenta.</p>
+              <h2 className="text-xl font-semibold text-[#E8EFE5]">Perfil Admin</h2>
+              <p className="text-[#B8C5B3] text-sm">Nombre, email y permisos de tu cuenta.</p>
             </div>
           </div>
-          <div className="space-y-3 text-[#2F3E37]">
+          <div className="space-y-3 text-[#B8C5B3]">
             <p>Nombre: <strong>Administrador Trebol</strong></p>
             <p>Email: <strong>admin@trebol.com</strong></p>
             <p>Rol: <strong>ADMIN</strong></p>
           </div>
         </Card>
 
-        <Card className="p-6 bg-white/70 backdrop-blur-md border-white/20">
+        <Card className="p-6 bg-white/[0.04] backdrop-blur-xl border-white/[0.08] rounded-[1.5rem] shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-xl bg-[#7BAE7F]/10">
+            <div className="p-3 rounded-xl bg-[#7BAE7F]/15 border border-[#7BAE7F]/30">
               <Sun className="w-5 h-5 text-[#7BAE7F]" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-[#1E2B24]">Tema</h2>
-              <p className="text-[#4B6358] text-sm">Apariencia del panel con glassmorphism.</p>
+              <h2 className="text-xl font-semibold text-[#E8EFE5]">Tema</h2>
+              <p className="text-[#B8C5B3] text-sm">Apariencia del panel con glassmorphism.</p>
             </div>
           </div>
-          <div className="space-y-3 text-[#2F3E37]">
+          <div className="space-y-3 text-[#B8C5B3]">
             <p>Modo actual: <strong>Premium</strong></p>
             <p>Paleta: <strong>Verde natural y blanco translúcido</strong></p>
           </div>
@@ -53,9 +53,9 @@ export function SettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        <Card className="p-6 bg-white/70 backdrop-blur-md border-white/20">
+        <Card className="p-6 bg-white/[0.04] backdrop-blur-xl border-white/[0.08] rounded-[1.5rem] shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 rounded-xl bg-[#7BAE7F]/10">
+            <div className="p-3 rounded-xl bg-[#7BAE7F]/15 border border-[#7BAE7F]/30">
               <Bell className="w-5 h-5 text-[#7BAE7F]" />
             </div>
             <div>

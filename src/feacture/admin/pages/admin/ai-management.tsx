@@ -175,19 +175,19 @@ export function AIManagement() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-white flex items-center gap-3">
-            <div className="p-3 rounded-xl bg-purple-500/10">
+          <h1 className="text-3xl font-semibold text-[#E8EFE5] flex items-center gap-3">
+            <div className="p-3 rounded-xl bg-purple-500/15 border border-purple-500/30">
               <Sparkles className="w-8 h-8 text-purple-400" />
             </div>
             Gestión de Módulos IA
           </h1>
-          <p className="text-[#4B6358] mt-1">
+          <p className="text-[#B8C5B3] mt-1">
             Análisis y rendimiento de funciones inteligentes
           </p>
         </div>
         <Button
           variant="ghost"
-          className="text-[#4B6358] hover:text-white hover:bg-white/10"
+          className="text-[#B8C5B3] hover:text-[#E8EFE5] hover:bg-white/[0.06]"
         >
           <Download className="w-4 h-4 mr-2" />
           Exportar Métricas
