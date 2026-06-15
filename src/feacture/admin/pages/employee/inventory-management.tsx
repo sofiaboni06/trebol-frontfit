@@ -38,7 +38,8 @@ import {
   RefreshCw,
   BarChart3,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import productService from "../../../../services/product.service";
 import {
   LineChart,
   Line,
@@ -54,11 +55,43 @@ import {
 
 export function InventoryManagement() {
   const [isAdjustDialogOpen, setIsAdjustDialogOpen] = useState(false);
+  const [products, setProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [inventoryError, setInventoryError] = useState("");
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      setLoadingProducts(true);
+      setInventoryError("");
+      try {
+        const fetchedProducts = await productService.getProducts();
+        setProducts(Array.isArray(fetchedProducts) ? fetchedProducts : []);
+      } catch (error) {
+        console.error(error);
+        setInventoryError("No se pudo cargar el inventario.");
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    loadProducts();
+  }, []);
+
+  const totalStockValue = products.reduce((sum, product) => {
+    const stock = Number(product.stock ?? 0);
+    const price = Number(product.precio ?? 0);
+    return sum + stock * price;
+  }, 0);
+
+  const inStockCount = products.filter((product) => Number(product.stock ?? 0) > 0).length;
+  const lowStockCount = products.filter(
+    (product) => Number(product.stock ?? 0) > 0 && Number(product.stock ?? 0) < 10
+  ).length;
 
   const inventoryStats = [
     {
       title: "Valor Total Inventario",
-      value: "$245,890",
+      value: `$${totalStockValue.toLocaleString()}`,
       change: "+8.2%",
       trend: "up",
       icon: Package,
@@ -67,7 +100,7 @@ export function InventoryManagement() {
     },
     {
       title: "Productos en Stock",
-      value: "1,245",
+      value: inStockCount.toLocaleString(),
       change: "+12",
       trend: "up",
       icon: Archive,
@@ -76,7 +109,7 @@ export function InventoryManagement() {
     },
     {
       title: "Bajo Stock",
-      value: "23",
+      value: lowStockCount.toLocaleString(),
       change: "+5",
       trend: "up",
       icon: AlertTriangle,
@@ -150,36 +183,16 @@ export function InventoryManagement() {
     },
   ];
 
-  const lowStockItems = [
-    {
-      name: "Monstera Deliciosa",
-      current: 5,
-      minimum: 15,
-      category: "Interior",
-      lastUpdate: "Hace 2 días",
-    },
-    {
-      name: "Fertilizante Orgánico",
-      current: 3,
-      minimum: 20,
-      category: "Insumos",
-      lastUpdate: "Hace 1 día",
-    },
-    {
-      name: "Maceta Cerámica Grande",
-      current: 7,
-      minimum: 12,
-      category: "Macetas",
-      lastUpdate: "Hace 3 días",
-    },
-    {
-      name: "Sustrato Premium",
-      current: 4,
-      minimum: 25,
-      category: "Insumos",
-      lastUpdate: "Hace 1 día",
-    },
-  ];
+  const lowStockItems = products
+    .filter((product) => Number(product.stock ?? 0) > 0 && Number(product.stock ?? 0) < 10)
+    .slice(0, 4)
+    .map((product) => ({
+      name: product.nombre || "Producto",
+      current: Number(product.stock ?? 0),
+      minimum: 10,
+      category: product.categoria?.nombre || "Sin categoría",
+      lastUpdate: "Reciente",
+    }));
 
   const getMovementIcon = (type: string) => {
     switch (type) {
@@ -205,6 +218,26 @@ export function InventoryManagement() {
       default:
         return "bg-white/20 text-gray-300 border-white/30";
     }
+  };
+
+  const renderInventoryStatus = () => {
+    if (loadingProducts) {
+      return (
+        <div className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-6 text-[#B8C5B3]">
+          Cargando datos de inventario...
+        </div>
+      );
+    }
+
+    if (inventoryError) {
+      return (
+        <div className="rounded-3xl border border-red-500/30 bg-red-500/10 p-6 text-red-200">
+          {inventoryError}
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -313,6 +346,8 @@ export function InventoryManagement() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {renderInventoryStatus()}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -118,6 +118,55 @@ const productService = {
   },
 
   /**
+   * Subir una imagen (multipart) y obtener la URL pública
+   * @param {File} file - Archivo a subir
+   * @returns {Promise<string>} URL devuelta por el servidor
+   */
+  uploadImage: async (file) => {
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      const response = await api.post('/images/upload', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data?.url;
+    } catch (error) {
+      console.error('Error subiendo imagen:', getHttpErrorMessage(error), error);
+      throw error;
+    }
+  },
+
+  /**
+   * Simular un escaneo: enviar código (SKU) al backend /api/scanner
+   * @param {string} codigo
+   */
+  scan: async (codigo, usuarioId = null) => {
+    try {
+      const payload = { codigo };
+      if (usuarioId) payload.usuarioId = usuarioId;
+      const response = await api.post('/scanner', payload);
+      return response.data;
+    } catch (error) {
+      console.error('Error en scanner:', getHttpErrorMessage(error), error);
+      throw error;
+    }
+  },
+
+  analyzeImage: async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('imagen', file);
+      const response = await api.post('/scanner/analyze-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error analizando imagen:', getHttpErrorMessage(error), error);
+      throw error;
+    }
+  },
+
+  /**
    * Buscar y filtrar productos localmente
    * @param {array} products - Lista de productos a filtrar
    * @param {object} filters - Objeto con filtros a aplicar

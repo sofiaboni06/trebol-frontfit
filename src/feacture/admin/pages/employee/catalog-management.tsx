@@ -28,6 +28,16 @@ import {
   DialogTrigger,
 } from "../../components/ui/dialog";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../../components/ui/alert-dialog";
+import {
   Package,
   Plus,
   Search,
@@ -39,16 +49,41 @@ import {
   CheckCircle,
   Eye,
   Filter,
+  Loader,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import productService from "../../../../services/product.service";
 import categoryService from "../../../../services/category.service";
+
+interface ProductForm {
+  nombre: string;
+  descripcion: string;
+  precio: string;
+  costo: string;
+  precioVenta: string;
+  stock: string;
+  categoriaId: string;
+  imagenPrincipal: string;
+}
+
+const INITIAL_FORM: ProductForm = {
+  nombre: "",
+  descripcion: "",
+  precio: "",
+  costo: "",
+  precioVenta: "",
+  stock: "",
+  categoriaId: "",
+  imagenPrincipal: "",
+};
 
 export function CatalogManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -56,6 +91,15 @@ export function CatalogManagement() {
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [productError, setProductError] = useState("");
   const [categoryError, setCategoryError] = useState("");
+  const [formData, setFormData] = useState<ProductForm>(INITIAL_FORM);
+  const [editingProductId, setEditingProductId] = useState<number | null>(null);
+  const [deletingProductId, setDeletingProductId] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const productImageInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -66,6 +110,7 @@ export function CatalogManagement() {
         setProducts(Array.isArray(data) ? data : []);
       } catch (error) {
         setProductError("No se pudieron cargar los productos.");
+        toast.error("Error al cargar productos");
       } finally {
         setLoadingProducts(false);
       }
@@ -79,6 +124,7 @@ export function CatalogManagement() {
         setCategories(Array.isArray(data) ? data : []);
       } catch (error) {
         setCategoryError("No se pudieron cargar las categorías.");
+        toast.error("Error al cargar categorías");
       } finally {
         setLoadingCategories(false);
       }
@@ -88,22 +134,285 @@ export function CatalogManagement() {
     loadCategories();
   }, []);
 
+  // Validar formulario
+  const validateForm = (): boolean => {
+    if (!formData.nombre.trim()) {
+      toast.error("El nombre del producto es requerido");
+      return false;
+    }
+    if (!formData.precio || parseFloat(formData.precio) <= 0) {
+      toast.error("El precio debe ser mayor a 0");
+      return false;
+    }
+    if (formData.costo && parseFloat(formData.costo) < 0) {
+      toast.error("El costo no puede ser negativo");
+      return false;
+    }
+    if (!formData.stock || parseInt(formData.stock) < 0) {
+      toast.error("El stock no puede ser negativo");
+      return false;
+    }
+    if (!formData.categoriaId) {
+      toast.error("La categoría es requerida");
+      return false;
+    }
+    return true;
+  };
+
+  // Validar y procesar imagen
+  const validateAndPreviewImage = (file: File): boolean => {
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    const allowedFormats = ["image/jpeg", "image/png", "image/webp"];
+    const allowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+
+    // Validar tamaño
+    if (file.size > maxSize) {
+      toast.error("Imagen demasiado grande. Máximo 5MB");
+      return false;
+    }
+
+    // Validar formato por MIME type
+    if (!allowedFormats.includes(file.type)) {
+      toast.error("Formato no permitido. Solo JPG, PNG o WebP");
+      return false;
+    }
+
+    // Validar extensión del archivo
+    const fileName = file.name.toLowerCase();
+    const hasValidExtension = allowedExtensions.some((ext) =>
+      fileName.endsWith(ext)
+    );
+    if (!hasValidExtension) {
+      toast.error("Formato no permitido. Solo JPG, PNG o WebP");
+      return false;
+    }
+
+    return true;
+  };
+
+  // Manejar selección de archivo
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (validateAndPreviewImage(file)) {
+      setSelectedImage(file);
+
+      // Crear vista previa
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const url = event.target?.result as string;
+        setPreviewUrl(url);
+        toast.success("Imagen cargada, lista para subir");
+      };
+      reader.readAsDataURL(file);
+    } else {
+      // Limpiar estados si hay error
+      setSelectedImage(null);
+      setPreviewUrl("");
+      e.target.value = ""; // Reset input
+    }
+  };
+
+  // Subir imagen y obtener URL
+  const uploadImageAndGetUrl = async (file: File): Promise<string | null> => {
+    try {
+      setUploadingImage(true);
+      const url = await productService.uploadImage(file);
+      if (url) {
+        toast.success("Imagen cargada correctamente");
+        return url;
+      }
+      return null;
+    } catch (error) {
+      toast.error("Error al subir la imagen");
+      return null;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  // Limpiar imagen
+  const clearImage = () => {
+    setSelectedImage(null);
+    setPreviewUrl("");
+    if (productImageInputRef.current) {
+      productImageInputRef.current.value = "";
+    }
+  };
+
+  // Crear producto
+  const handleCreateProduct = async () => {
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+    try {
+      let imagenUrl = formData.imagenPrincipal;
+
+      // Subir imagen si existe una seleccionada
+      if (selectedImage) {
+        const uploadedUrl = await uploadImageAndGetUrl(selectedImage);
+        if (uploadedUrl) {
+          imagenUrl = uploadedUrl;
+        } else {
+          setIsSubmitting(false);
+          return; // Detener si falla la subida
+        }
+      }
+
+      const productData = {
+        nombre: formData.nombre,
+        descripcion: formData.descripcion,
+        precio: parseFloat(formData.precio),
+        costo: formData.costo ? parseFloat(formData.costo) : undefined,
+        precioVenta: formData.precioVenta ? parseFloat(formData.precioVenta) : undefined,
+        stock: parseInt(formData.stock),
+        categoriaId: parseInt(formData.categoriaId),
+        imagenPrincipal: imagenUrl || "",
+        estado: true,
+        sku: `SKU-${Date.now()}`,
+      };
+
+      await productService.createProduct(productData);
+      toast.success("Producto creado exitosamente");
+      setFormData(INITIAL_FORM);
+      clearImage();
+      setIsCreateDialogOpen(false);
+
+      // Recargar productos
+      const data = await productService.getProducts();
+      setProducts(Array.isArray(data) ? data : []);
+    } catch (error: any) {
+      const errorMsg =
+        error.response?.data?.message || "Error al crear el producto";
+      toast.error(errorMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Actualizar producto
+  const handleUpdateProduct = async () => {
+    if (!validateForm() || editingProductId === null) return;
+
+    setIsSubmitting(true);
+    try {
+      let imagenUrl = formData.imagenPrincipal;
+
+      // Subir imagen si existe una seleccionada
+      if (selectedImage) {
+        const uploadedUrl = await uploadImageAndGetUrl(selectedImage);
+        if (uploadedUrl) {
+          imagenUrl = uploadedUrl;
+        } else {
+          setIsSubmitting(false);
+          return; // Detener si falla la subida
+        }
+      }
+
+      const productData = {
+        nombre: formData.nombre,
+        descripcion: formData.descripcion,
+        precio: parseFloat(formData.precio),
+        costo: formData.costo ? parseFloat(formData.costo) : undefined,
+        precioVenta: formData.precioVenta ? parseFloat(formData.precioVenta) : undefined,
+        stock: parseInt(formData.stock),
+        categoriaId: parseInt(formData.categoriaId),
+        imagenPrincipal: imagenUrl || "",
+        estado: true,
+      };
+
+      await productService.updateProduct(editingProductId, productData);
+      toast.success("Producto actualizado exitosamente");
+      setFormData(INITIAL_FORM);
+      clearImage();
+      setEditingProductId(null);
+      setIsEditDialogOpen(false);
+
+      // Recargar productos
+      const data = await productService.getProducts();
+      setProducts(Array.isArray(data) ? data : []);
+    } catch (error: any) {
+      const errorMsg =
+        error.response?.data?.message || "Error al actualizar el producto";
+      toast.error(errorMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Eliminar producto
+  const handleDeleteProduct = async () => {
+    if (deletingProductId === null) return;
+
+    setIsDeleting(true);
+    try {
+      await productService.deleteProduct(deletingProductId);
+      toast.success("Producto eliminado exitosamente");
+      setDeletingProductId(null);
+      setIsDeleteDialogOpen(false);
+
+      // Recargar productos
+      const data = await productService.getProducts();
+      setProducts(Array.isArray(data) ? data : []);
+    } catch (error: any) {
+      const errorMsg =
+        error.response?.data?.message || "Error al eliminar el producto";
+      toast.error(errorMsg);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // Abrir formulario para editar
+  const openEditDialog = (product: any) => {
+    setEditingProductId(product.id);
+    setFormData({
+      nombre: product.nombre || "",
+      descripcion: product.descripcion || "",
+      precio: product.precio?.toString() || "",
+      costo: product.costo?.toString() || "",
+      precioVenta: product.precioVenta?.toString() || "",
+      stock: product.stock?.toString() || "",
+      categoriaId: product.categoria?.id?.toString() || "",
+      imagenPrincipal: product.imagenPrincipal || "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  // Cerrar diálogos
+  const closeCreateDialog = () => {
+    setIsCreateDialogOpen(false);
+    setFormData(INITIAL_FORM);
+    clearImage();
+  };
+
+  const closeEditDialog = () => {
+    setIsEditDialogOpen(false);
+    setEditingProductId(null);
+    setFormData(INITIAL_FORM);
+    clearImage();
+  };
+
   const productItems = products.map((product) => ({
     id: product.id,
+    ...product,
     name: product.nombre || product.name || "Producto sin nombre",
     category:
       product.categoria?.nombre || product.categoria || product.category ||
       "Sin categoría",
     price: parseFloat(product.precio ?? product.price ?? 0) || 0,
+    costo: parseFloat(product.costo ?? 0) || 0,
+    precioVenta: parseFloat(product.precioVenta ?? product.precio ?? 0) || 0,
     stock: Number(product.stock ?? 0),
     status:
-      product.estado ||
-      product.status ||
-      (Number(product.stock ?? 0) === 0
+      product.estado === false
+        ? "inactivo"
+        : Number(product.stock ?? 0) === 0
         ? "sin-stock"
         : Number(product.stock ?? 0) < 10
         ? "bajo-stock"
-        : "activo"),
+        : "activo",
     image:
       product.imagenPrincipal ||
       product.image ||
@@ -111,12 +420,12 @@ export function CatalogManagement() {
       "https://images.unsplash.com/photo-1525498128493-380d1990a112",
   }));
 
-  const categoryOptions = categories.map((category) => {
+  const categoryOptions = categories.map((category, index) => {
     if (typeof category === "string") {
       return { id: category, name: category };
     }
     return {
-      id: category.id || category.nombre || category.name || Math.random().toString(36).slice(2),
+      id: category.id || category.nombre || category.name || `category-${index}`,
       name: category.nombre || category.name || `Categoría ${category.id || ""}`,
     };
   });
@@ -147,27 +456,29 @@ export function CatalogManagement() {
     }
   };
 
-  const ProductFormContent = () => (
+  const renderProductFormContent = () => (
     <div className="space-y-4 py-4">
       <div className="space-y-2">
-        <Label className="text-white">Nombre del Producto</Label>
+        <Label className="text-white">Nombre del Producto *</Label>
         <Input
           placeholder="Ej: Monstera Deliciosa"
+          value={formData.nombre}
+          onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
           className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-white">Categoría</Label>
-          <Select>
+          <Label className="text-white">Categoría *</Label>
+          <Select value={formData.categoriaId} onValueChange={(value) => setFormData({ ...formData, categoriaId: value })}>
             <SelectTrigger className="bg-white/5 border-white/10 text-[#1E2B24]">
               <SelectValue placeholder="Seleccionar" />
             </SelectTrigger>
             <SelectContent>
               {categoryOptions.length > 0 ? (
                 categoryOptions.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.name.toLowerCase()}>
+                  <SelectItem key={cat.id} value={cat.id.toString()}>
                     {cat.name}
                   </SelectItem>
                 ))
@@ -181,62 +492,173 @@ export function CatalogManagement() {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-white">Precio (MXN)</Label>
+          <Label className="text-white">Precio (MXN) *</Label>
           <Input
             type="number"
             placeholder="0.00"
+            value={formData.precio}
+            onChange={(e) => setFormData({ ...formData, precio: e.target.value })}
             className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+            min="0"
+            step="0.01"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-white">Costo (MXN)</Label>
+          <Input
+            type="number"
+            placeholder="0.00"
+            value={formData.costo}
+            onChange={(e) => setFormData({ ...formData, costo: e.target.value })}
+            className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+            min="0"
+            step="0.01"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-white">Precio Venta (MXN)</Label>
+          <Input
+            type="number"
+            placeholder="0.00"
+            value={formData.precioVenta}
+            onChange={(e) => setFormData({ ...formData, precioVenta: e.target.value })}
+            className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+            min="0"
+            step="0.01"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label className="text-white">Stock Inicial</Label>
-          <Input
-            type="number"
-            placeholder="0"
-            className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-white">Stock Mínimo</Label>
-          <Input
-            type="number"
-            placeholder="0"
-            className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
-          />
-        </div>
+      <div className="space-y-2">
+        <Label className="text-white">Stock Inicial *</Label>
+        <Input
+          type="number"
+          placeholder="0"
+          value={formData.stock}
+          onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+          className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+          min="0"
+        />
       </div>
 
       <div className="space-y-2">
         <Label className="text-white">Descripción</Label>
         <Textarea
           placeholder="Descripción del producto..."
+          value={formData.descripcion}
+          onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })}
           className="bg-white/5 border-white/10 text-white placeholder:text-gray-400 min-h-[100px]"
         />
       </div>
 
       <div className="space-y-2">
         <Label className="text-white">Imagen del Producto</Label>
-        <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-[#7BAE7F] transition-colors cursor-pointer bg-white/5">
-          <Upload className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-          <p className="text-gray-300 text-sm mb-1">
-            Arrastra una imagen o haz clic para seleccionar
-          </p>
-          <p className="text-gray-400 text-xs">PNG, JPG hasta 5MB</p>
+        
+        {/* Imagen actual o previsualización */}
+        <div className="w-full h-[250px] rounded-lg bg-white/5 border border-white/10 overflow-hidden flex items-center justify-center mb-4">
+          {previewUrl ? (
+            <img
+              src={previewUrl}
+              alt="Preview"
+              className="w-full h-full object-cover"
+            />
+          ) : formData.imagenPrincipal ? (
+            <img
+              src={formData.imagenPrincipal}
+              alt="Actual"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center gap-2 text-gray-400">
+              <ImageIcon className="w-10 h-10" />
+              <span className="text-sm">Sin imagen</span>
+            </div>
+          )}
         </div>
+
+        {/* Selector de archivo */}
+        <div className="flex gap-2">
+          <input
+            ref={productImageInputRef}
+            id="product-image-file"
+            type="file"
+            accept=".jpg,.jpeg,.png,.webp"
+            onChange={handleImageSelect}
+            onClick={(event) => {
+              event.currentTarget.value = "";
+            }}
+            className="hidden"
+            disabled={uploadingImage}
+          />
+          <label htmlFor="product-image-file" className="flex-1">
+            <Button
+              asChild
+              className="w-full bg-gradient-to-r from-[#2E5E4E] to-[#7BAE7F] hover:opacity-90 text-white disabled:opacity-50 cursor-pointer"
+              disabled={uploadingImage}
+            >
+              <span>
+                {uploadingImage ? (
+                  <>
+                    <Loader className="w-4 h-4 mr-2 animate-spin" />
+                    Subiendo...
+                  </>
+                ) : previewUrl ? (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Cambiar Imagen
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Seleccionar Imagen
+                  </>
+                )}
+              </span>
+            </Button>
+          </label>
+          {previewUrl && (
+            <Button
+              variant="ghost"
+              onClick={clearImage}
+              disabled={uploadingImage}
+              className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+            >
+              ✕
+            </Button>
+          )}
+        </div>
+
+        {/* Información de validación */}
+        <p className="text-xs text-gray-400 flex items-center gap-2 mt-2">
+          <AlertCircle className="w-3 h-3" />
+          JPG, PNG o WebP • Máximo 5MB
+        </p>
       </div>
 
       <div className="flex gap-3 pt-4">
-        <Button className="flex-1 bg-gradient-to-r from-[#2E5E4E] to-[#7BAE7F] hover:opacity-90 text-white">
-          <CheckCircle className="w-4 h-4 mr-2" />
-          Guardar Producto
+        <Button
+          onClick={editingProductId ? handleUpdateProduct : handleCreateProduct}
+          disabled={isSubmitting}
+          className="flex-1 bg-gradient-to-r from-[#2E5E4E] to-[#7BAE7F] hover:opacity-90 text-white disabled:opacity-50"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader className="w-4 h-4 mr-2 animate-spin" />
+              Guardando...
+            </>
+          ) : (
+            <>
+              <CheckCircle className="w-4 h-4 mr-2" />
+              {editingProductId ? "Actualizar Producto" : "Crear Producto"}
+            </>
+          )}
         </Button>
         <Button
           variant="ghost"
-          className="text-gray-300 hover:text-white hover:bg-white/10"
+          onClick={editingProductId ? closeEditDialog : closeCreateDialog}
+          disabled={isSubmitting}
+          className="text-gray-300 hover:text-white hover:bg-white/10 disabled:opacity-50"
         >
           Cancelar
         </Button>
@@ -272,7 +694,7 @@ export function CatalogManagement() {
                 Completa los datos del producto para agregarlo al catálogo
               </DialogDescription>
             </DialogHeader>
-            <ProductFormContent />
+            {renderProductFormContent()}
           </DialogContent>
         </Dialog>
       </div>
@@ -423,7 +845,7 @@ export function CatalogManagement() {
                     </Badge>
                   </TableCell>
                   <TableCell className="text-white">
-                    ${product.price.toLocaleString()}
+                    ${product.precioVenta ? product.precioVenta.toLocaleString() : product.price.toLocaleString()}
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -446,15 +868,19 @@ export function CatalogManagement() {
                         variant="ghost"
                         size="icon"
                         className="text-gray-300 hover:text-white hover:bg-white/10"
+                        onClick={() => {
+                          // TODO: Vista detallada del producto
+                        }}
                       >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Dialog>
+                      <Dialog open={isEditDialogOpen && editingProductId === product.id} onOpenChange={(open) => !open && closeEditDialog()}>
                         <DialogTrigger asChild>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                            onClick={() => openEditDialog(product)}
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -468,16 +894,61 @@ export function CatalogManagement() {
                               Modifica los datos del producto {product.name}
                             </DialogDescription>
                           </DialogHeader>
-                          <ProductFormContent />
+                          {renderProductFormContent()}
                         </DialogContent>
                       </Dialog>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                      <AlertDialog
+                        open={isDeleteDialogOpen && deletingProductId === product.id}
+                        onOpenChange={(open) => {
+                          if (!open) {
+                            setDeletingProductId(null);
+                            setIsDeleteDialogOpen(false);
+                          }
+                        }}
                       >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            onClick={() => {
+                              setDeletingProductId(product.id);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-[#1E2B24] border-white/10">
+                          <AlertDialogHeader>
+                            <AlertDialogTitle className="text-white">
+                              Eliminar Producto
+                            </AlertDialogTitle>
+                            <AlertDialogDescription className="text-gray-300">
+                              ¿Estás seguro de que deseas eliminar "{product.name}"? Esta acción no se puede deshacer.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <div className="flex gap-3 justify-end">
+                            <AlertDialogCancel className="bg-white/5 border-white/10 text-white hover:bg-white/10">
+                              Cancelar
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={handleDeleteProduct}
+                              disabled={isDeleting}
+                              className="bg-red-500/20 text-red-400 hover:bg-red-500/30 border-red-500/30 disabled:opacity-50"
+                            >
+                              {isDeleting ? (
+                                <>
+                                  <Loader className="w-4 h-4 mr-2 animate-spin" />
+                                  Eliminando...
+                                </>
+                              ) : (
+                                "Eliminar"
+                              )}
+                            </AlertDialogAction>
+                          </div>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </TableCell>
                 </TableRow>

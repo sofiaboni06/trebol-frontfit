@@ -143,7 +143,7 @@ export function LoginPage() {
             <p className="text-gray-600">
               ¿No tienes cuenta?{" "}
               <button
-                onClick={() => navigate("/registro")}
+                onClick={() => navigate("/register")}
                 className="text-[#2E5E4E] font-semibold hover:underline"
               >
                 Regístrate aquí

@@ -31,6 +31,8 @@ import { AppointmentsManagement } from "../feacture/admin/pages/employee/appoint
 import { InventoryManagement } from "../feacture/admin/pages/employee/inventory-management";
 import { SalesManagement } from "../feacture/admin/pages/employee/sales-management";
 import { CatalogManagement } from "../feacture/admin/pages/employee/catalog-management";
+import { ForbiddenPage } from "./pages/forbidden-page";
+import { AdminRoute } from "./components/route-guards";
 
 export const router = createBrowserRouter([
   {
@@ -68,20 +70,30 @@ export const router = createBrowserRouter([
   },
   {
     path: "/admin",
-    Component: AdminLayout,
+    Component: AdminRoute,
     children: [
-      { index: true, Component: AdminDashboardNew },
-      { path: "productos", Component: ProductManagement },
-      { path: "categorias", Component: CategoryManagement },
-      { path: "inventario", Component: InventoryManagement },
-      { path: "ventas", Component: SalesManagement },
-      { path: "citas", Component: AppointmentsManagement },
-      { path: "servicios", Component: ServiceManagement },
-      { path: "usuarios", Component: UserManagement },
-      { path: "ia", Component: AIManagement },
-      { path: "reportes", Component: ReportsAnalytics },
-      { path: "configuracion", Component: SettingsPage },
+      {
+        path: "",
+        Component: AdminLayout,
+        children: [
+          { index: true, Component: AdminDashboardNew },
+          { path: "productos", Component: ProductManagement },
+          { path: "categorias", Component: CategoryManagement },
+          { path: "inventario", Component: InventoryManagement },
+          { path: "ventas", Component: SalesManagement },
+          { path: "citas", Component: AppointmentsManagement },
+          { path: "servicios", Component: ServiceManagement },
+          { path: "usuarios", Component: UserManagement },
+          { path: "ia", Component: AIManagement },
+          { path: "reportes", Component: ReportsAnalytics },
+          { path: "configuracion", Component: SettingsPage },
+        ],
+      },
     ],
+  },
+  {
+    path: "/403",
+    Component: ForbiddenPage,
   },
   {
     path: "/empleado",

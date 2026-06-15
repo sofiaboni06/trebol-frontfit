@@ -355,7 +355,7 @@ export function ProfilePage() {
               ) : (
                 favorites.map((product) => (
                   <Card key={product.id} className="overflow-hidden bg-white">
-                    <div className="aspect-square overflow-hidden">
+                    <div className="w-full h-[260px] overflow-hidden bg-gray-100">
                       <ImageWithFallback
                         src={product.image}
                         alt={product.name}

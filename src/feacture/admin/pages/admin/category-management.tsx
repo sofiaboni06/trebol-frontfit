@@ -1,25 +1,45 @@
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "../../components/ui/dialog";
-import { FolderTree, Plus, Tag } from "lucide-react";
+import { FolderTree, Plus, Tag, Edit, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import categoryService from "../../../../services/category.service";
+
+const initialCategoryForm = {
+  nombre: "",
+  descripcion: "",
+  imagen: "",
+  estado: true,
+};
 
 export function CategoryManagement() {
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [categoryError, setCategoryError] = useState("");
-  const [isCreateCategoryDialogOpen, setIsCreateCategoryDialogOpen] = useState(false);
+  const [formError, setFormError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [formValues, setFormValues] = useState(initialCategoryForm);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -38,46 +58,93 @@ export function CategoryManagement() {
     loadCategories();
   }, []);
 
-  const categoryItems = categories.map((category) => {
-    if (typeof category === "string") {
-      return { id: category, name: category };
+  const openCreateDialog = () => {
+    setEditingCategory(null);
+    setFormValues(initialCategoryForm);
+    setFormError("");
+    setSuccessMessage("");
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (category) => {
+    setEditingCategory(category);
+    setFormValues({
+      nombre: category.nombre || "",
+      descripcion: category.descripcion || "",
+      imagen: category.imagen || "",
+      estado: category.estado ?? true,
+    });
+    setFormError("");
+    setSuccessMessage("");
+    setIsDialogOpen(true);
+  };
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+    setFormError("");
+  };
+
+  const handleFormChange = (field, value) => {
+    setFormValues((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const saveCategory = async (event) => {
+    event.preventDefault();
+    setFormError("");
+    setSuccessMessage("");
+
+    if (!formValues.nombre.trim() || !formValues.descripcion.trim()) {
+      setFormError("Nombre y descripción son obligatorios.");
+      return;
     }
 
-    return {
-      id: category.id ?? category.nombre ?? category.name ?? Math.random().toString(36).slice(2),
-      name: category.nombre || category.name || "Categoría sin nombre",
-    };
-  });
+    try {
+      const payload = {
+        nombre: formValues.nombre.trim(),
+        descripcion: formValues.descripcion.trim(),
+        imagen: formValues.imagen.trim() || null,
+        estado: formValues.estado,
+      };
 
-  const CategoryFormContent = () => (
-    <div className="space-y-4 py-4">
-      <div className="space-y-2">
-        <Label className="text-white">Nombre de Categoría</Label>
-        <Input
-          placeholder="Ej: Plantas de Interior"
-          className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
-        />
-      </div>
-      <div className="space-y-2">
-        <Label className="text-white">Descripción</Label>
-        <Textarea
-          placeholder="Describe la categoría..."
-          className="bg-white/5 border-white/10 text-white placeholder:text-gray-400 min-h-[100px]"
-        />
-      </div>
-      <div className="flex gap-3 pt-4">
-        <Button className="flex-1 bg-gradient-to-br from-[#2E5E4E] to-[#3D7A5E] hover:from-[#3D7A5E] hover:to-[#4D8A6E] text-white">
-          Guardar Categoría
-        </Button>
-        <Button
-          variant="ghost"
-          className="text-gray-300 hover:text-white hover:bg-white/10"
-        >
-          Cancelar
-        </Button>
-      </div>
-    </div>
-  );
+      if (editingCategory?.id) {
+        const updated = await categoryService.updateCategory(editingCategory.id, payload);
+        setCategories((prev) => prev.map((cat) => (cat.id === updated.id ? updated : cat)));
+        setSuccessMessage("Categoría actualizada correctamente.");
+      } else {
+        const created = await categoryService.createCategory(payload);
+        setCategories((prev) => [created, ...prev]);
+        setSuccessMessage("Categoría creada correctamente.");
+      }
+
+      closeDialog();
+    } catch (error) {
+      setFormError("Ocurrió un error al guardar la categoría.");
+    }
+  };
+
+  const deleteCategory = async (categoryId) => {
+    const confirmed = window.confirm("¿Deseas eliminar esta categoría?");
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      await categoryService.deleteCategory(categoryId);
+      setCategories((prev) => prev.filter((category) => category.id !== categoryId));
+      setSuccessMessage("Categoría eliminada correctamente.");
+    } catch (error) {
+      setCategoryError("No se pudo eliminar la categoría.");
+    }
+  };
+
+  const activeCount = categories.filter((category) => category.estado).length;
+  const inactiveCount = categories.length - activeCount;
+
+  const statusBadge = (estado) => {
+    return estado
+      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+      : "bg-red-500/10 text-red-400 border-red-500/20";
+  };
 
   return (
     <div className="space-y-6">
@@ -85,12 +152,15 @@ export function CategoryManagement() {
         <div>
           <h1 className="text-3xl font-semibold text-[#E8EFE5]">Categorías</h1>
           <p className="text-[#B8C5B3] mt-1">
-            Administración de categorías y agrupaciones de productos.
+            Administra las categorías que usa el catálogo.
           </p>
         </div>
-        <Dialog open={isCreateCategoryDialogOpen} onOpenChange={setIsCreateCategoryDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-gradient-to-br from-[#2E5E4E] to-[#3D7A5E] hover:from-[#3D7A5E] hover:to-[#4D8A6E] text-white shadow-[0_8px_24px_rgba(46,94,78,0.3)] transition-all duration-300">
+            <Button
+              onClick={openCreateDialog}
+              className="bg-gradient-to-br from-[#2E5E4E] to-[#3D7A5E] hover:from-[#3D7A5E] hover:to-[#4D8A6E] text-white shadow-[0_8px_24px_rgba(46,94,78,0.3)] transition-all duration-300"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Nueva categoría
             </Button>
@@ -98,69 +168,173 @@ export function CategoryManagement() {
           <DialogContent className="bg-[#1E2B24] border-white/10 text-white max-w-2xl">
             <DialogHeader>
               <DialogTitle className="text-white text-xl">
-                Crear Nueva Categoría
+                {editingCategory ? "Editar Categoría" : "Crear Nueva Categoría"}
               </DialogTitle>
               <DialogDescription className="text-gray-300">
-                Completa los datos de la categoría para agregarla al panel.
+                {editingCategory
+                  ? "Actualiza los datos de la categoría."
+                  : "Completa los datos para crear una categoría nueva."}
               </DialogDescription>
             </DialogHeader>
-            <CategoryFormContent />
+
+            <form className="space-y-4 py-4" onSubmit={saveCategory}>
+              {formError ? (
+                <div className="rounded-[1rem] border border-red-500/20 bg-red-500/10 p-3 text-red-100">
+                  {formError}
+                </div>
+              ) : null}
+              <div className="space-y-2">
+                <Label className="text-white">Nombre</Label>
+                <Input
+                  value={formValues.nombre}
+                  onChange={(e) => handleFormChange("nombre", e.target.value)}
+                  placeholder="Ej: Plantas de Interior"
+                  className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-white">Descripción</Label>
+                <Textarea
+                  value={formValues.descripcion}
+                  onChange={(e) => handleFormChange("descripcion", e.target.value)}
+                  placeholder="Describe la categoría..."
+                  className="bg-white/5 border-white/10 text-white placeholder:text-gray-400 min-h-[100px]"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-white">Estado</Label>
+                <Select
+                  value={formValues.estado ? "activo" : "inactivo"}
+                  onValueChange={(value) => handleFormChange("estado", value === "activo")}
+                >
+                  <SelectTrigger className="bg-white/5 border-white/10 text-white">
+                    <SelectValue placeholder="Selecciona el estado" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="activo">Activo</SelectItem>
+                    <SelectItem value="inactivo">Inactivo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-white">Imagen (URL)</Label>
+                <Input
+                  value={formValues.imagen}
+                  onChange={(e) => handleFormChange("imagen", e.target.value)}
+                  placeholder="https://..."
+                  className="bg-white/5 border-white/10 text-white placeholder:text-gray-400"
+                />
+              </div>
+              <div className="flex gap-3 pt-4">
+                <Button
+                  type="submit"
+                  className="flex-1 bg-gradient-to-br from-[#2E5E4E] to-[#3D7A5E] hover:from-[#3D7A5E] hover:to-[#4D8A6E] text-white"
+                >
+                  Guardar categoría
+                </Button>
+                <DialogClose asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="text-gray-300 hover:text-white hover:bg-white/10"
+                    onClick={closeDialog}
+                  >
+                    Cancelar
+                  </Button>
+                </DialogClose>
+              </div>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Card className="p-6 bg-white/[0.04] backdrop-blur-xl border-white/[0.08] rounded-[1.5rem] shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="p-3 rounded-xl bg-[#7BAE7F]/10 border border-[#7BAE7F]/20">
-            <FolderTree className="w-5 h-5 text-[#7BAE7F]" />
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold text-[#E8EFE5]">Categorías activas</h2>
-            <p className="text-[#B8C5B3] text-sm">Las categorías ayudan a organizar tus productos.</p>
-          </div>
-        </div>
-        <div className="space-y-4">
-          {categoryError ? (
-            <div className="rounded-[1.5rem] border border-red-500/20 bg-red-500/10 p-4 text-red-100">
-              {categoryError}
-            </div>
-          ) : null}
-          <div className="grid gap-4 md:grid-cols-2">
-            {loadingCategories
-              ? Array.from({ length: 4 }, (_, index) => (
-                  <div
-                    key={index}
-                    className="h-24 animate-pulse rounded-[1.5rem] bg-white/5 border border-white/[0.08]"
-                  />
-                ))
-              : categoryItems.length > 0
-              ? categoryItems.map((category) => (
-                  <div
-                    key={category.id}
-                    className="rounded-[1.5rem] border border-white/[0.08] bg-white/[0.04] p-4 backdrop-blur-sm hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300 shadow-[0_4px_12px_rgba(0,0,0,0.2)]"
-                  >
-                    <p className="text-[#E8EFE5] font-semibold">{category.name}</p>
-                    <p className="text-[#B8C5B3] text-sm mt-1">
-                      Productos y subcategorías relacionadas.
-                    </p>
-                  </div>
-                ))
-              : (
-                <div className="rounded-[1.5rem] border border-white/[0.08] bg-white/[0.04] p-4">
-                  <p className="text-[#B8C5B3] text-sm">
-                    No hay categorías activas.
-                  </p>
-                </div>
-              )}
-          </div>
-        </div>
-      </Card>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="p-5 bg-white/5 backdrop-blur-md border-white/10">
+          <p className="text-[#B8C5B3] text-sm">Total categorías</p>
+          <p className="mt-2 text-3xl font-semibold text-white">{categories.length}</p>
+        </Card>
+        <Card className="p-5 bg-white/5 backdrop-blur-md border-white/10">
+          <p className="text-[#B8C5B3] text-sm">Activas</p>
+          <p className="mt-2 text-3xl font-semibold text-white">{activeCount}</p>
+        </Card>
+        <Card className="p-5 bg-white/5 backdrop-blur-md border-white/10">
+          <p className="text-[#B8C5B3] text-sm">Inactivas</p>
+          <p className="mt-2 text-3xl font-semibold text-white">{inactiveCount}</p>
+        </Card>
+      </div>
 
-      <Card className="p-6 bg-white/[0.04] backdrop-blur-xl border-white/[0.08] rounded-[1.5rem] shadow-[0_8px_24px_rgba(0,0,0,0.3)]">
-        <div className="flex items-center gap-3">
-          <Tag className="w-5 h-5 text-[#7BAE7F]" />
-          <p className="text-[#B8C5B3]">Aquí podrás mantener las categorías sincronizadas con el panel.</p>
+      {successMessage ? (
+        <div className="rounded-[1.5rem] border border-emerald-500/20 bg-emerald-500/10 p-4 text-emerald-100">
+          {successMessage}
         </div>
+      ) : null}
+
+      <Card className="bg-white/5 backdrop-blur-md border-white/10 overflow-hidden">
+        {loadingCategories ? (
+          <div className="p-8 text-center text-gray-300">Cargando categorías...</div>
+        ) : categoryError ? (
+          <div className="p-8 text-center text-red-300">{categoryError}</div>
+        ) : categories.length === 0 ? (
+          <div className="p-8 text-center text-gray-300">No hay categorías disponibles.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-white/10">
+              <thead className="bg-white/5">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    Nombre
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    Descripción
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    Estado
+                  </th>
+                  <th className="px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-gray-400">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/10 bg-[#0C1913]">
+                {categories.map((category) => (
+                  <tr key={category.id} className="hover:bg-white/5 transition-colors duration-200">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-white max-w-[240px] overflow-hidden text-ellipsis">
+                      {category.nombre}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-[#B8C5B3] max-w-[420px] overflow-hidden text-ellipsis">
+                      {category.descripcion}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <Badge className={statusBadge(category.estado)}>
+                        {category.estado ? "Activo" : "Inactivo"}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <div className="inline-flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                          onClick={() => openEditDialog(category)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          onClick={() => deleteCategory(category.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </Card>
     </div>
   );

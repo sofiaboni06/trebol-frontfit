@@ -4,32 +4,82 @@ import { Button } from "../../components/ui/button";
 import { Calendar, ShoppingCart, AlertTriangle, Package, Sparkles, ArrowRight } from "lucide-react";
 import { Link } from "react-router";
 import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts";
+import { useEffect, useState } from "react";
+import dashboardService from "../../../../services/dashboard.service";
 
 export function AdminDashboardNew() {
+  const [dashboard, setDashboard] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const loadDashboard = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const data = await dashboardService.getDashboard();
+        setDashboard(data);
+      } catch (err) {
+        console.error(err);
+        setError("No se pudieron cargar los datos del dashboard.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDashboard();
+  }, []);
+
+  const formatValue = (value) =>
+    value !== undefined && value !== null ? value.toLocaleString() : "–";
+
   const kpiCards = [
     {
-      title: "Citas Hoy",
-      value: "12",
+      title: "Usuarios",
+      value: formatValue(dashboard?.usuarios),
       icon: Calendar,
       color: "text-emerald-300",
       bgColor: "bg-emerald-500/10",
-      period: "3 confirmadas",
+      period: "Total de cuentas",
     },
     {
-      title: "Pedidos Pendientes",
-      value: "8",
+      title: "Productos",
+      value: formatValue(dashboard?.productos),
       icon: ShoppingCart,
       color: "text-slate-200",
       bgColor: "bg-slate-400/10",
-      period: "Revisión activa",
+      period: "Artículos registrados",
     },
     {
-      title: "Alertas de Inventario",
-      value: "3",
+      title: "Bajo stock",
+      value: formatValue(dashboard?.lowStockCount),
       icon: AlertTriangle,
       color: "text-orange-300",
       bgColor: "bg-orange-400/10",
-      period: "Crítico",
+      period: "Productos críticos",
+    },
+  ];
+
+  const summaryCards = [
+    {
+      title: "Categorías",
+      value: formatValue(dashboard?.categorias),
+      subtitle: "Tipos de productos",
+    },
+    {
+      title: "Pedidos",
+      value: formatValue(dashboard?.pedidos),
+      subtitle: "Órdenes registradas",
+    },
+    {
+      title: "Citas",
+      value: formatValue(dashboard?.citas),
+      subtitle: "Reservas totales",
+    },
+    {
+      title: "Stock total",
+      value: formatValue(dashboard?.stockTotal),
+      subtitle: "Unidades disponibles",
     },
   ];
 
@@ -121,29 +171,40 @@ export function AdminDashboardNew() {
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {kpiCards.map((kpi, index) => (
-            <Card
-              key={index}
-              className="p-5 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] shadow-[0_12px_40px_rgba(46,94,78,0.2)] rounded-[1.5rem] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
-            >
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.18em] text-[#8B9A88]">
-                    {kpi.title}
-                  </p>
-                  <p className="mt-3 text-3xl font-semibold text-[#E8EFE5]">
-                    {kpi.value}
-                  </p>
-                  <p className="mt-2 text-sm text-[#B8C5B3]">{kpi.period}</p>
+            {kpiCards.map((kpi, index) => (
+              <Card
+                key={index}
+                className="p-5 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] shadow-[0_12px_40px_rgba(46,94,78,0.2)] rounded-[1.5rem] hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.18em] text-[#8B9A88]">
+                      {kpi.title}
+                    </p>
+                    <p className="mt-3 text-3xl font-semibold text-[#E8EFE5]">
+                      {kpi.value}
+                    </p>
+                    <p className="mt-2 text-sm text-[#B8C5B3]">{kpi.period}</p>
+                  </div>
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-3xl ${kpi.bgColor}`}>
+                    <kpi.icon className={`w-5 h-5 ${kpi.color}`} />
+                  </div>
                 </div>
-                <div className={`flex h-12 w-12 items-center justify-center rounded-3xl ${kpi.bgColor}`}>
-                  <kpi.icon className={`w-5 h-5 ${kpi.color}`} />
-                </div>
-              </div>
-            </Card>
-          ))}
+              </Card>
+            ))}
+          </div>
         </div>
-      </div>
+      {loading && (
+        <div className="rounded-3xl border border-white/[0.08] bg-white/[0.04] p-6 text-[#B8C5B3]">
+          Cargando indicadores del dashboard...
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-3xl border border-red-500/30 bg-red-500/10 p-6 text-red-200">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
         <div className="xl:col-span-7 space-y-6">
@@ -224,25 +285,22 @@ export function AdminDashboardNew() {
           <Card className="p-8 bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] shadow-[0_16px_48px_rgba(46,94,78,0.2)] rounded-[2rem]">
             <div className="flex items-center justify-between gap-4 mb-6">
               <div>
-                <p className="text-sm text-[#8B9A88]">Productos premium</p>
+                <p className="text-sm text-[#8B9A88]">Resumen rápido</p>
                 <h2 className="text-2xl font-semibold text-[#E8EFE5]">
-                  Catálogo en foco
+                  Indicadores clave
                 </h2>
               </div>
               <Package className="w-6 h-6 text-[#7BAE7F]" />
             </div>
-            <div className="space-y-4">
-              {[
-                { name: "Monstera Deliciosa", detail: "Stock 24 · Premium" },
-                { name: "Ficus Lyrata", detail: "Stock 12 · Lo más buscado" },
-                { name: "Sustrato Premium", detail: "Stock 56 · Bestseller" },
-              ].map((item, index) => (
+            <div className="grid gap-4">
+              {summaryCards.map((item, index) => (
                 <div
                   key={index}
                   className="rounded-[1.75rem] border border-white/[0.08] bg-white/[0.04] p-5 backdrop-blur-sm hover:bg-white/[0.06] hover:border-white/[0.12] transition-all duration-300"
                 >
-                  <p className="text-base font-semibold text-[#E8EFE5]">{item.name}</p>
-                  <p className="mt-1 text-sm text-[#B8C5B3]">{item.detail}</p>
+                  <p className="text-base font-semibold text-[#E8EFE5]">{item.title}</p>
+                  <p className="mt-1 text-3xl font-semibold text-[#B8C5B3]">{item.value}</p>
+                  <p className="mt-2 text-sm text-[#8B9A88]">{item.subtitle}</p>
                 </div>
               ))}
             </div>

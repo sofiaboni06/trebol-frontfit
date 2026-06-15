@@ -91,7 +91,7 @@ export function ProductDetailPage() {
           {/* Image Gallery */}
           <div>
             <Card className="overflow-hidden mb-4 bg-white">
-              <div className="aspect-square">
+              <div className="w-full h-[400px]">
                 <ImageWithFallback
                   src={product.images[selectedImage]}
                   alt={product.name}
@@ -110,7 +110,7 @@ export function ProductDetailPage() {
                   }`}
                   onClick={() => setSelectedImage(index)}
                 >
-                  <div className="aspect-square">
+                  <div className="w-full h-[120px]">
                     <ImageWithFallback
                       src={image}
                       alt={`${product.name} ${index + 1}`}
@@ -375,7 +375,7 @@ export function ProductDetailPage() {
             {relatedProducts.map((related) => (
               <Link key={related.id} to={`/producto/${related.id}`}>
                 <Card className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 bg-white">
-                  <div className="aspect-square overflow-hidden">
+                  <div className="w-full h-[260px] overflow-hidden bg-gray-100">
                     <ImageWithFallback
                       src={related.image}
                       alt={related.name}

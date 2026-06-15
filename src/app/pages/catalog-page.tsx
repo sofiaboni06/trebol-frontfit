@@ -270,7 +270,7 @@ export function CatalogPage() {
                     className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 bg-white"
                   >
                     <Link to={`/producto/${product.id}`}>
-                      <div className="relative aspect-square overflow-hidden">
+                      <div className="relative w-full h-[260px] overflow-hidden bg-gray-100">
                         <ImageWithFallback
                           src={product.imagenPrincipal}
                           alt={product.nombre}
