@@ -90,10 +90,7 @@ const authService = {
       console.warn('Error intentando llamar endpoint logout:', err.message);
     }
 
-    // Limpiar almacenamiento local
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('usuario');
+    authService.clearSession();
   },
 
   /**
@@ -113,11 +110,73 @@ const authService = {
   },
 
   /**
+   * Validar si el token JWT está vigente y no expirado
+   * @param {string} token
+   * @returns {boolean}
+   */
+  isTokenValid: (token) => {
+    if (!token) return false;
+
+    const payload = authService.parseJwt(token);
+    if (!payload || !payload.exp) return false;
+
+    return Date.now() < payload.exp * 1000;
+  },
+
+  parseJwt: (token) => {
+    if (!token) return null;
+
+    try {
+      const base64Url = token.split('.')[1];
+      if (!base64Url) return null;
+
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = base64.padEnd(base64.length + (4 - (base64.length % 4)) % 4, '=');
+      const jsonPayload = decodeURIComponent(
+        atob(padded)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      return null;
+    }
+  },
+
+  /**
+   * Revisar si el usuario actual tiene un rol específico
+   * @param {string} roleName
+   * @returns {boolean}
+   */
+  hasRole: (roleName) => {
+    const user = authService.getUser();
+    if (!user || !Array.isArray(user.roles)) return false;
+
+    const normalize = (value) =>
+      value?.toString().toUpperCase().replace(/^ROLE_/, '') || '';
+
+    return user.roles.some((role) => normalize(role?.nombre) === normalize(roleName));
+  },
+
+  /**
+   * Limpiar la sesión local y los tokens
+   */
+  clearSession: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('usuario');
+  },
+
+  /**
    * Verificar si el usuario está autenticado
-   * @returns {boolean} true si existe token
+   * @returns {boolean} true si el token es válido y hay usuario en localStorage
    */
   isAuthenticated: () => {
-    return !!localStorage.getItem('token');
+    const token = authService.getToken();
+    const user = authService.getUser();
+    return !!token && !!user && authService.isTokenValid(token);
   },
 
   /**

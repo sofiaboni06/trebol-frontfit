@@ -137,7 +137,7 @@ export function MobileHome() {
           {featured.map((product) => (
             <Link key={product.id} to={`/mobile/producto/${product.id}`}>
               <Card className="overflow-hidden">
-                <div className="aspect-square overflow-hidden relative">
+                <div className="w-full h-[260px] overflow-hidden relative bg-gray-100">
                   <ImageWithFallback
                     src={product.image}
                     alt={product.name}

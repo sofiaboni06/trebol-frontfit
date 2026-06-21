@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -16,11 +16,45 @@ import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import productService from "../../services/product.service";
 
 export function CatalogPage() {
-  const [priceRange, setPriceRange] = useState([0, 5000]);
-  const [favorites, setFavorites] = useState<number[]>([]);
-  const [products, setProducts] = useState([]);
+  // Estado de productos
+  const [allProducts, setAllProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [favorites, setFavorites] = useState<number[]>([]);
+
+  // Estado de filtros
+  const [selectedCategories, setSelectedCategories] = useState<(string | number)[]>([]);
+  const [priceRange, setPriceRange] = useState([0, 5000]);
+  const [sortBy, setSortBy] = useState("featured");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Atributos dinámicos para filtros
+  const [filterAttributes, setFilterAttributes] = useState<any>({
+    tiposProducto: [],
+    priceRange: { min: 0, max: 5000 },
+  });
+
+  // Extraer categorías dinámicas de los productos sin duplicados
+  const dynamicCategories = useMemo(() => {
+    if (!allProducts.length) return [];
+    
+    const categoryMap = new Map();
+    allProducts.forEach((product: any) => {
+      if (product.categoria?.nombre) {
+        const key = product.categoria.nombre;
+        if (!categoryMap.has(key)) {
+          categoryMap.set(key, {
+            id: product.categoria.id,
+            nombre: product.categoria.nombre,
+            descripcion: product.categoria.descripcion,
+            imagen: product.categoria.imagen,
+          });
+        }
+      }
+    });
+    return Array.from(categoryMap.values());
+  }, [allProducts]);
 
   // Cargar productos del backend
   useEffect(() => {
@@ -28,13 +62,27 @@ export function CatalogPage() {
       try {
         setLoading(true);
         const data = await productService.getProducts();
-        setProducts(Array.isArray(data) ? data : data.data || []);
+        const productsArray = Array.isArray(data) ? data : data.data || [];
+        
+        setAllProducts(productsArray);
+
+        // Extraer atributos dinámicos para los filtros
+        const attributes = productService.getFilterAttributes(productsArray);
+        setFilterAttributes(attributes);
+
+        // Inicializar rango de precio con valores calculados
+        if (attributes.priceRange.max > 0) {
+          setPriceRange([
+            attributes.priceRange.min,
+            Math.ceil(attributes.priceRange.max),
+          ]);
+        }
+
         setError(null);
       } catch (err) {
-        console.error('Error cargando productos:', err);
-        setError('Error al cargar productos');
-        // Mantener datos vacíos en caso de error
-        setProducts([]);
+        console.error("Error cargando productos:", err);
+        setError("Error al cargar productos");
+        setAllProducts([]);
       } finally {
         setLoading(false);
       }
@@ -43,87 +91,51 @@ export function CatalogPage() {
     loadProducts();
   }, []);
 
-  // Datos mock como fallback (por si el backend no está disponible)
-  const fallbackProducts = [
-    {
-      id: 1,
-      name: "Monstera Deliciosa",
-      price: 890,
-      category: "Interior",
-      light: "Indirecta",
-      image:
-        "https://images.unsplash.com/photo-1525498128493-380d1990a112?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsdXh1cnklMjBpbmRvb3IlMjBtb25zdGVyYSUyMHBsYW50fGVufDF8fHx8MTc3OTk3NzU4MHww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 2,
-      name: "Ficus Lyrata",
-      price: 1290,
-      category: "Interior",
-      light: "Brillante",
-      image:
-        "https://images.unsplash.com/photo-1531875985735-f135dac5f230?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3R0ZWQlMjBmaWRkbGUlMjBsZWFmJTIwZmlnJTIwdHJlZXxlbnwxfHx8fDE3Nzk5Nzc1ODJ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 3,
-      name: "Sansevieria",
-      price: 490,
-      category: "Interior",
-      light: "Baja",
-      image:
-        "https://images.unsplash.com/photo-1687552212914-03a30c82053c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzbmFrZSUyMHBsYW50JTIwc2Fuc2V2aWVyaWElMjBtb2Rlcm58ZW58MXx8fHwxNzc5OTc3NTg0fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 4,
-      name: "Pothos",
-      price: 390,
-      category: "Interior",
-      light: "Indirecta",
-      image:
-        "https://images.unsplash.com/photo-1598880940080-ff9a29891b85?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwb3Rob3MlMjBoYW5naW5nJTIwcGxhbnQlMjBpbmRvb3J8ZW58MXx8fHwxNzc5OTc3NTg0fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 5,
-      name: "Palmera Tropical",
-      price: 1590,
-      category: "Exterior",
-      light: "Directa",
-      image:
-        "https://images.unsplash.com/photo-1506634064465-7dab4de896ed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0cm9waWNhbCUyMHBhbG0lMjBpbmRvb3IlMjBwbGFudHxlbnwxfHx8fDE3Nzk5Nzc1ODN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 6,
-      name: "Suculentas Mix",
-      price: 290,
-      category: "Interior",
-      light: "Brillante",
-      image:
-        "https://images.unsplash.com/photo-1459156212016-c812468e2115?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdWNjdWxlbnQlMjBwbGFudHMlMjBjb2xsZWN0aW9ufGVufDF8fHx8MTc3OTk3NzU4MXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 7,
-      name: "Maceta Cerámica",
-      price: 450,
-      category: "Decoración",
-      light: "-",
-      image:
-        "https://images.unsplash.com/photo-1721328004336-c19ee38adcd1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjZXJhbWljJTIwcGxhbnQlMjBwb3RzJTIwbWluaW1hbGlzdHxlbnwxfHx8fDE3Nzk5Nzc1ODN8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-    {
-      id: 8,
-      name: "Kit Herramientas",
-      price: 690,
-      category: "Herramientas",
-      light: "-",
-      image:
-        "https://images.unsplash.com/photo-1773430272849-5fa19c6f2c1f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxnYXJkZW5pbmclMjB0b29scyUyMHdvb2RlbiUyMGhhbmRsZXxlbnwxfHx8fDE3Nzk5Nzc1ODR8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
-    },
-  ];
+  // Aplicar filtros cada vez que cambien
+  useEffect(() => {
+    const filters = {
+      categories: selectedCategories,
+      priceMin: priceRange[0],
+      priceMax: priceRange[1],
+      search: searchTerm,
+      sortBy: sortBy,
+    };
+
+    const filtered = productService.filterAndSort(allProducts, filters);
+    setFilteredProducts(filtered);
+  }, [allProducts, selectedCategories, priceRange, searchTerm, sortBy]);
 
   const toggleFavorite = (id: number) => {
     setFavorites((prev) =>
       prev.includes(id) ? prev.filter((fav) => fav !== id) : [...prev, id]
     );
   };
+
+  const toggleCategory = (categoryId: string | number) => {
+    setSelectedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((cat) => cat !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
+
+  const resetFilters = () => {
+    setSelectedCategories([]);
+    setPriceRange([filterAttributes.priceRange.min, filterAttributes.priceRange.max]);
+    setSearchTerm("");
+    setSortBy("featured");
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#F4F1EA] py-12 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2E5E4E] mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando catálogo...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#F4F1EA] py-12">
@@ -142,39 +154,62 @@ export function CatalogPage() {
           {/* Filters Sidebar */}
           <aside className="lg:col-span-1">
             <Card className="sticky top-24 backdrop-blur-sm bg-white/80 border-white/40 p-6">
-              <div className="flex items-center gap-2 mb-6">
-                <SlidersHorizontal className="w-5 h-5 text-[#2E5E4E]" />
-                <h2 className="text-lg font-semibold text-[#1E2B24]">
-                  Filtros
-                </h2>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="w-5 h-5 text-[#2E5E4E]" />
+                  <h2 className="text-lg font-semibold text-[#1E2B24]">
+                    Filtros
+                  </h2>
+                </div>
+                {(selectedCategories.length > 0 || searchTerm) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetFilters}
+                    className="text-xs text-[#2E5E4E] hover:bg-[#2E5E4E]/10"
+                  >
+                    Limpiar
+                  </Button>
+                )}
               </div>
 
-              {/* Category Filter */}
+              {/* Search */}
               <div className="mb-6">
-                <h3 className="font-semibold text-[#1E2B24] mb-3">
-                  Categoría
-                </h3>
-                <div className="space-y-2">
-                  {[
-                    "Plantas de Interior",
-                    "Plantas de Exterior",
-                    "Macetas",
-                    "Fertilizantes",
-                    "Herramientas",
-                    "Decoración",
-                  ].map((category) => (
-                    <div key={category} className="flex items-center gap-2">
-                      <Checkbox id={category} />
-                      <label
-                        htmlFor={category}
-                        className="text-sm text-gray-700 cursor-pointer"
-                      >
-                        {category}
-                      </label>
-                    </div>
-                  ))}
-                </div>
+                <h3 className="font-semibold text-[#1E2B24] mb-3">Buscar</h3>
+                <input
+                  type="text"
+                  placeholder="Nombre del producto..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#2E5E4E]"
+                />
               </div>
+
+              {/* Category Filter - Dinámico */}
+              {dynamicCategories.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="font-semibold text-[#1E2B24] mb-3">
+                    Categoría
+                  </h3>
+                  <div className="space-y-2">
+                    {dynamicCategories.map((category: any) => (
+                      <div key={category.id || category.nombre} className="flex items-center gap-2">
+                        <Checkbox
+                          id={`category-${category.id}`}
+                          checked={selectedCategories.includes(category.id)}
+                          onCheckedChange={() => toggleCategory(category.id)}
+                        />
+                        <label
+                          htmlFor={`category-${category.id}`}
+                          className="text-sm text-gray-700 cursor-pointer"
+                        >
+                          {category.nombre}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Price Range */}
               <div className="mb-6">
@@ -184,41 +219,22 @@ export function CatalogPage() {
                 <Slider
                   value={priceRange}
                   onValueChange={setPriceRange}
-                  min={0}
-                  max={5000}
-                  step={100}
+                  min={filterAttributes.priceRange.min}
+                  max={filterAttributes.priceRange.max}
+                  step={50}
                   className="mb-4"
                 />
                 <div className="flex justify-between text-sm text-gray-600">
-                  <span>${priceRange[0]}</span>
-                  <span>${priceRange[1]}</span>
+                  <span>${Math.floor(priceRange[0])}</span>
+                  <span>${Math.floor(priceRange[1])}</span>
                 </div>
               </div>
 
-              {/* Light Requirements */}
-              <div className="mb-6">
-                <h3 className="font-semibold text-[#1E2B24] mb-3">
-                  Nivel de luz
-                </h3>
-                <div className="space-y-2">
-                  {["Baja", "Indirecta", "Brillante", "Directa"].map(
-                    (light) => (
-                      <div key={light} className="flex items-center gap-2">
-                        <Checkbox id={light} />
-                        <label
-                          htmlFor={light}
-                          className="text-sm text-gray-700 cursor-pointer"
-                        >
-                          {light}
-                        </label>
-                      </div>
-                    )
-                  )}
-                </div>
-              </div>
-
-              <Button className="w-full bg-[#2E5E4E] hover:bg-[#1E2B24] text-white rounded-full">
-                Aplicar filtros
+              <Button
+                className="w-full bg-[#2E5E4E] hover:bg-[#1E2B24] text-white rounded-full"
+                onClick={resetFilters}
+              >
+                Resetear filtros
               </Button>
             </Card>
           </aside>
@@ -227,8 +243,10 @@ export function CatalogPage() {
           <div className="lg:col-span-3">
             {/* Sort & View Options */}
             <div className="flex items-center justify-between mb-6">
-              <p className="text-gray-600">{products.length} productos</p>
-              <Select defaultValue="featured">
+              <p className="text-gray-600">
+                {filteredProducts.length} de {allProducts.length} productos
+              </p>
+              <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-48 bg-white">
                   <SelectValue />
                 </SelectTrigger>
@@ -244,68 +262,84 @@ export function CatalogPage() {
             </div>
 
             {/* Products Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {products.map((product) => (
-                <Card
-                  key={product.id}
-                  className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 bg-white"
-                >
-                  <Link to={`/producto/${product.id}`}>
-                    <div className="relative aspect-square overflow-hidden">
-                      <ImageWithFallback
-                        src={product.imagenPrincipal}
-                        alt={product.nombre}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute top-3 right-3 flex gap-2">
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            toggleFavorite(product.id);
-                          }}
-                          className="w-10 h-10 rounded-full backdrop-blur-md bg-white/80 flex items-center justify-center hover:bg-white transition-colors"
-                        >
-                          <Heart
-                            className={`w-5 h-5 ${
-                              favorites.includes(product.id)
-                                ? "fill-red-500 text-red-500"
-                                : "text-gray-700"
-                            }`}
-                          />
-                        </button>
-                      </div>
-                      <div className="absolute bottom-3 left-3">
-                        <span className="px-3 py-1 rounded-full backdrop-blur-md bg-white/80 text-xs font-semibold text-[#1E2B24]">
-                          {product.categoria?.nombre || "Sin categoría"}
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                  <div className="p-5">
+            {filteredProducts.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                {filteredProducts.map((product: any) => (
+                  <Card
+                    key={product.id}
+                    className="group overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer hover:-translate-y-1 bg-white"
+                  >
                     <Link to={`/producto/${product.id}`}>
-                      <h3 className="text-lg font-semibold text-[#1E2B24] mb-1 group-hover:text-[#2E5E4E] transition-colors">
-                        {product.nombre}
-                      </h3>
+                      <div className="relative w-full h-[260px] overflow-hidden bg-gray-100">
+                        <ImageWithFallback
+                          src={product.imagenPrincipal}
+                          alt={product.nombre}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                        <div className="absolute top-3 right-3 flex gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              toggleFavorite(product.id);
+                            }}
+                            className="w-10 h-10 rounded-full backdrop-blur-md bg-white/80 flex items-center justify-center hover:bg-white transition-colors"
+                          >
+                            <Heart
+                              className={`w-5 h-5 ${
+                                favorites.includes(product.id)
+                                  ? "fill-red-500 text-red-500"
+                                  : "text-gray-700"
+                              }`}
+                            />
+                          </button>
+                        </div>
+                        <div className="absolute bottom-3 left-3">
+                          <span className="px-3 py-1 rounded-full backdrop-blur-md bg-white/80 text-xs font-semibold text-[#1E2B24]">
+                            {product.categoria?.nombre || "Sin categoría"}
+                          </span>
+                        </div>
+                      </div>
                     </Link>
-                    <p className="text-sm text-gray-600 mb-3">
-                      {product.descripcion ? product.descripcion.substring(0, 50) + "..." : "Producto disponible"}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <p className="text-2xl font-bold text-[#2E5E4E]">
-                        ${parseFloat(product.precio).toFixed(0)}
+                    <div className="p-5">
+                      <Link to={`/producto/${product.id}`}>
+                        <h3 className="text-lg font-semibold text-[#1E2B24] mb-1 group-hover:text-[#2E5E4E] transition-colors">
+                          {product.nombre}
+                        </h3>
+                      </Link>
+                      <p className="text-sm text-gray-600 mb-3">
+                        {product.descripcion
+                          ? product.descripcion.substring(0, 50) + "..."
+                          : "Producto disponible"}
                       </p>
-                      <Button
-                        size="sm"
-                        className="bg-[#2E5E4E] hover:bg-[#1E2B24] text-white rounded-full"
-                      >
-                        <ShoppingCart className="w-4 h-4 mr-1" />
-                        Agregar
-                      </Button>
+                      <div className="flex items-center justify-between">
+                        <p className="text-2xl font-bold text-[#2E5E4E]">
+                          ${parseFloat(product.precio).toFixed(0)}
+                        </p>
+                        <Button
+                          size="sm"
+                          className="bg-[#2E5E4E] hover:bg-[#1E2B24] text-white rounded-full"
+                        >
+                          <ShoppingCart className="w-4 h-4 mr-1" />
+                          Agregar
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </Card>
-              ))}
-            </div>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-600 mb-4">
+                  No se encontraron productos que coincidan con los filtros seleccionados.
+                </p>
+                <Button
+                  onClick={resetFilters}
+                  className="bg-[#2E5E4E] hover:bg-[#1E2B24] text-white rounded-full"
+                >
+                  Limpiar filtros
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -32,7 +32,16 @@ export function LoginPage() {
       const response = await login(data.correo, data.password);
 
       if (response && response.token) {
-        navigate("/perfil");
+        const usuario = response.usuario || JSON.parse(localStorage.getItem("usuario") || "null");
+        const normalize = (name) => name?.toString().toUpperCase().replace(/^ROLE_/, "") || "";
+        const hasRole = (role) =>
+          !!usuario?.roles?.some((r) => normalize(r?.nombre) === normalize(role));
+
+        if (hasRole("ADMIN")) {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
       }
     } catch (err) {
       const errorMessage =
@@ -134,7 +143,7 @@ export function LoginPage() {
             <p className="text-gray-600">
               ¿No tienes cuenta?{" "}
               <button
-                onClick={() => navigate("/registro")}
+                onClick={() => navigate("/register")}
                 className="text-[#2E5E4E] font-semibold hover:underline"
               >
                 Regístrate aquí

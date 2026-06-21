@@ -7,10 +7,14 @@ import authService from "../services/auth.service";
  * Proporciona acceso al estado de autenticación en cualquier componente
  */
 export function useAuth() {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(() => authService.getUser());
+  const [token, setToken] = useState(() => authService.getToken());
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    const storedToken = authService.getToken();
+    const storedUser = authService.getUser();
+    return authService.isTokenValid(storedToken) && !!storedUser;
+  });
+  const [loading, setLoading] = useState(false);
 
   // Verificar autenticación al montar el componente
   useEffect(() => {
@@ -19,17 +23,21 @@ export function useAuth() {
         const storedToken = authService.getToken();
         const storedUser = authService.getUser();
 
-        if (storedToken) {
+        if (storedToken && storedUser && authService.isTokenValid(storedToken)) {
           setToken(storedToken);
           setUser(storedUser);
           setIsAuthenticated(true);
         } else {
+          authService.clearSession();
           setToken(null);
           setUser(null);
           setIsAuthenticated(false);
         }
       } catch (error) {
         console.error("Error al verificar autenticación:", error);
+        authService.clearSession();
+        setToken(null);
+        setUser(null);
         setIsAuthenticated(false);
       } finally {
         setLoading(false);
@@ -69,17 +77,23 @@ export function useAuth() {
     try {
       setLoading(true);
       const response = await authService.login(email, password);
-      
+
       const storedToken = authService.getToken();
       const storedUser = authService.getUser();
-      
-      setToken(storedToken);
-      setUser(storedUser);
-      setIsAuthenticated(true);
-      
+
+      const authenticated = storedToken && storedUser && authService.isTokenValid(storedToken);
+      setToken(authenticated ? storedToken : null);
+      setUser(authenticated ? storedUser : null);
+      setIsAuthenticated(authenticated);
+
+      if (!authenticated) {
+        authService.clearSession();
+      }
+
       return response;
     } catch (error) {
       setIsAuthenticated(false);
+      authService.clearSession();
       throw error;
     } finally {
       setLoading(false);
@@ -90,17 +104,23 @@ export function useAuth() {
     try {
       setLoading(true);
       const response = await authService.register(userData);
-      
+
       const storedToken = authService.getToken();
       const storedUser = authService.getUser();
-      
-      setToken(storedToken);
-      setUser(storedUser);
-      setIsAuthenticated(true);
-      
+
+      const authenticated = storedToken && storedUser && authService.isTokenValid(storedToken);
+      setToken(authenticated ? storedToken : null);
+      setUser(authenticated ? storedUser : null);
+      setIsAuthenticated(authenticated);
+
+      if (!authenticated) {
+        authService.clearSession();
+      }
+
       return response;
     } catch (error) {
       setIsAuthenticated(false);
+      authService.clearSession();
       throw error;
     } finally {
       setLoading(false);
@@ -129,10 +149,16 @@ export function useAuth() {
     }
   };
 
+  const normalizeRoleName = (roleName) =>
+    roleName?.toString().toUpperCase().replace(/^ROLE_/, "") || "";
+
   const hasRole = (roleName) => {
-    return !!user?.roles?.some(
-      (role) => role?.nombre?.toString() === roleName
-    );
+    const normalizedRoleName = normalizeRoleName(roleName);
+
+    return !!user?.roles?.some((role) => {
+      const storedRoleName = normalizeRoleName(role?.nombre);
+      return storedRoleName === normalizedRoleName;
+    });
   };
 
   const isAdmin = () => hasRole("ADMIN");

@@ -57,7 +57,7 @@ export function MobileProduct() {
       </div>
 
       {/* Image */}
-      <div className="aspect-square">
+      <div className="w-full h-[260px] bg-gray-100">
         <ImageWithFallback
           src={product.image}
           alt={product.name}

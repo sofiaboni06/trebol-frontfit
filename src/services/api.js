@@ -32,6 +32,15 @@ api.interceptors.response.use(
         // noop
       }
     }
+
+    if (error.response?.status === 403) {
+      try {
+        window.location.href = '/403';
+      } catch (e) {
+        // noop
+      }
+    }
+
     return Promise.reject(error);
   }
 );
